@@ -29,7 +29,7 @@ Combine this with an MCP server for placing trades on a brokerage platform such 
 
 ## Prerequisites
 
-- **Python:** 3.12 or higher
+- **Python:** 3.10 or higher
 - **Package Manager:** [uv](https://docs.astral.sh/uv/)
 
 ## Installation
