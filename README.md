@@ -36,15 +36,15 @@ First, install **uv** if you haven't already:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Then, you can run the **investor-agent** MCP server using `uvx`:
+Then, you can run the **finance-tools-mcp** MCP server using `uvx`:
 
 ```bash
-uvx investor-agent
+uvx finance-tools-mcp
 ```
 
 ## Tools
 
-The **investor-agent** server comes with several tools to support financial analysis:
+The **finance-tools-mcp** server comes with several tools to support financial analysis:
 
 ### Ticker Information
 
@@ -170,14 +170,14 @@ The **investor-agent** server comes with several tools to support financial anal
 
 ## Usage with MCP Clients
 
-To integrate **investor-agent** with an MCP client (for example, Claude Desktop), add the following configuration to your `claude_desktop_config.json`:
+To integrate **finance-tools-mcp** with an MCP client (for example, Claude Desktop), add the following configuration to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "investor": {
         "command": "path/to/uvx/command/uvx",
-        "args": ["investor-agent"],
+        "args": ["finance-tools-mcp"],
     }
   }
 }
@@ -188,7 +188,7 @@ To integrate **investor-agent** with an MCP client (for example, Claude Desktop)
 You can leverage the MCP inspector to debug the server:
 
 ```bash
-npx @modelcontextprotocol/inspector uvx investor-agent
+npx @modelcontextprotocol/inspector uvx finance-tools-mcp
 ```
 
 For log monitoring, check the following directories:
@@ -208,7 +208,7 @@ For local development and testing:
   "mcpServers": {
     "investor": {
       "command": "path/to/uv/command/uv",
-      "args": ["--directory", "path/to/investor-agent", "run", "investor-agent"],
+      "args": ["--directory", "path/to/finance-tools-mcp", "run", "finance-tools-mcp"],
     }
   }
 }
