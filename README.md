@@ -12,6 +12,10 @@ The **finance-tools-mcp**, modified from [investor-agent](https://github.com/fer
 - Current and historical CNN Fear & Greed Index data and trend analysis.
 - Prompts related to core investment principles and portfolio construction strategies.
 - Earnings history and insider trading activity.
+- Breaking world news from CNBC.
+- FRED series search results.
+- Technical indicators using ta-lib-python.
+
 
 The server integrates with [yfinance](https://pypi.org/project/yfinance/) for market data retrieval and fetches Fear & Greed data from CNN.
 
