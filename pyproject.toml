@@ -1,6 +1,6 @@
 [project]
 name = "finance-tools-mcp"
-version = "0.0.1"
+version = "0.0.2"
 description = "A Model Context Protocol server for a collection of financial tools, modified from https://github.com/ferdousbhai/investor-agent"
 readme = "README.md"
 requires-python = ">=3.10"
