@@ -1,8 +1,9 @@
 # finance-tools-mcp: A Financial Analysis MCP Server
+> https://github.com/VoxLink-org/finance-tools-mcp
 
 ## Overview
 
-The **finance-tools-mcp**, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
+The **finance-tools-mcp** , modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
 
 - Detailed ticker reports including company overview, news, key metrics, performance, dates, analyst recommendations, and upgrades/downgrades.
 - Options data highlighting high open interest.
