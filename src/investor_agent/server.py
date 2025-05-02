@@ -9,6 +9,7 @@ from tabulate import tabulate
 
 from . import yfinance_utils
 from . import cnn_fng_utils
+from . import calc_utils
 
 logger = logging.getLogger(__name__)
 
@@ -300,6 +301,33 @@ def get_insider_trades(ticker: str) -> str:
 
     return (f"INSIDER TRADES FOR {ticker}:\n" +
             tabulate(trades_data, headers=["Date", "Insider", "Title", "Transaction", "Shares", "Value"], tablefmt="plain"))
+
+@mcp.tool()
+def calculate(expression: str) -> str:
+    """Calculate the result of a mathematical expression. Support python math syntax and numpy. 
+        > calculate("2 * 3 + 4")
+        {'result': 10}
+        > calculate("sin(pi/2)")
+        {'result': 1.0}
+        > calculate("sqrt(16)")
+        {'result': 4.0}
+        > calculate("np.mean([1, 2, 3])")
+        {'result': 2.0}
+    """
+    return calc_utils.calc(expression)
+
+@mcp.tool()
+def call_ta(ta_lib_expression: str) -> str:
+    """
+    Calculate technical indicators using ta-lib-python (TA-lib) and numpy.
+    This tool evaluates a given expression string using the ta-lib-python library.
+    The expression should follow ta-lib-python syntax, for example:
+    - 'ta.SMA(np.random.randn(100), timeperiod=30)' to calculate Simple Moving Average
+    - 'ta.MACD(np.array([1,2,3,4,5,6,7,8]).astype('float64')' to calculate Moving Average Convergence Divergence
+
+    The expression string is evaluated in a context where the ta-lib-python library is available as 'ta' and numpy is available as 'np'.
+    """
+    return calc_utils.call_ta(ta_lib_expression)
 
 @mcp.prompt()
 def investment_principles() -> str:
@@ -609,4 +637,9 @@ async def analyze_fng_trend(days: int) -> str:
         return "\\n".join(result)  # Corrected join method
     except Exception as e:
         logger.error(f"Error analyzing Fear & Greed trend: {str(e)}")
-        return f"Error analyzing Fear & Greed trend: {str(e)}"
+@mcp.tool()
+def get_current_time() -> str:
+    """Get the current time in ISO 8601 format."""
+    now = datetime.now()
+    return now.isoformat()
+

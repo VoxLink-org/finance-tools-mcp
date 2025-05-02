@@ -112,6 +112,25 @@ The **investor-agent** server comes with several tools to support financial anal
      - `days` (int): Number of days to include in the trend analysis.
    - **Return:** A summary string including the latest value, average, range, trend direction, and classification.
 
+### Utility Tools
+
+1. **`calculate`**
+   - **Description:** Calculate the result of a mathematical expression. Supports Python math syntax and NumPy.
+   - **Input:**
+     - `expression` (string): The mathematical expression to evaluate.
+   - **Return:** A string containing a JSON object with the calculation result (e.g., `{'result': 10}`).
+
+2. **`call_ta`**
+   - **Description:** Calculate technical indicators using ta-lib-python (TA-lib) and NumPy.
+   - **Input:**
+     - `ta_lib_expression` (string): The TA-Lib expression to evaluate.
+   - **Return:** A string containing the result of the TA-Lib calculation.
+
+3. **`get_current_time`**
+   - **Description:** Get the current time in ISO 8601 format.
+   - **Inputs:** None
+   - **Return:** A string representing the current time in ISO 8601 format.
+
 ### Informational Prompts
 
 1. **`investment_principles`**

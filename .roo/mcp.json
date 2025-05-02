@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "aaw-financehub-mcp": {
+      "command": "uv",
+      "args": ["--directory", "/Users/bytedance/work/aaw-financehub-mcp", "run", "investor-agent"],
+      "alwaysAllow": [
+      ]
+    }
+  }
+}
