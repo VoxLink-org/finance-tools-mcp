@@ -7,3 +7,4 @@ dist
 *.ipynb
 .cursorrules
 example.py
+.roo/mcp.json
