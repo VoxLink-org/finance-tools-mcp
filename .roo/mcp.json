@@ -2,8 +2,29 @@
   "mcpServers": {
     "aaw-financehub-mcp": {
       "command": "uv",
-      "args": ["--directory", "/Users/bytedance/work/aaw-financehub-mcp", "run", "investor-agent"],
+      "args": [
+        "--directory",
+        "/Users/bytedance/work/aaw-financehub-mcp",
+        "run",
+        "finance-tools-mcp"
+      ],
+      "env":{
+        "FRED_API_KEY": "7fbed707a5c577c168c8610e8942d0d9"
+      },
       "alwaysAllow": [
+        "get_current_time",
+        "analyze_fng_trend",
+        "get_historical_fng_tool",
+        "get_current_fng_tool",
+        "calc_ta",
+        "calculate",
+        "get_insider_trades",
+        "get_earnings_history",
+        "get_institutional_holders",
+        "get_financial_statements",
+        "get_options",
+        "get_price_history",
+        "get_ticker_data"
       ]
     }
   }

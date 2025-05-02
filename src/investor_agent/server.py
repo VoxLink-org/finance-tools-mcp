@@ -10,6 +10,7 @@ from tabulate import tabulate
 from . import yfinance_utils
 from . import cnn_fng_utils
 from . import calc_utils
+from . import macro_api_utils;
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ logging.basicConfig(
 )
 
 # Initialize MCP server
-mcp = FastMCP("Investor-Agent", dependencies=["yfinance", "httpx", "pandas"])
+mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"])
 
 
 @mcp.tool()
@@ -177,8 +178,8 @@ def get_price_history(
 ) -> str:
     """Get historical price data for specified period."""
     history = yfinance_utils.get_price_history(ticker, period)
-    if history is None or history.empty:
-        return f"No historical data found for {ticker}"
+    if history is None or type(history) == str or history.empty:
+        return f"No historical data found for {ticker} {history}"
 
     price_data = [
         [
@@ -317,7 +318,7 @@ def calculate(expression: str) -> str:
     return calc_utils.calc(expression)
 
 @mcp.tool()
-def call_ta(ta_lib_expression: str) -> str:
+def calc_ta(ta_lib_expression: str) -> str:
     """
     Calculate technical indicators using ta-lib-python (TA-lib) and numpy.
     This tool evaluates a given expression string using the ta-lib-python library.
@@ -327,7 +328,7 @@ def call_ta(ta_lib_expression: str) -> str:
 
     The expression string is evaluated in a context where the ta-lib-python library is available as 'ta' and numpy is available as 'np'.
     """
-    return calc_utils.call_ta(ta_lib_expression)
+    return calc_utils.calc_ta(ta_lib_expression)
 
 @mcp.prompt()
 def investment_principles() -> str:
@@ -642,4 +643,19 @@ def get_current_time() -> str:
     """Get the current time in ISO 8601 format."""
     now = datetime.now()
     return now.isoformat()
+
+@mcp.tool()
+def get_fred_series(series_id):
+    """Get a FRED series by its ID.  """
+    return macro_api_utils.get_fred_series(series_id)
+
+@mcp.tool()
+def search_fred_series(query):
+    """Search for the most popular FRED series by keyword."""
+    return macro_api_utils.search_fred_series(query)
+
+@mcp.tool()
+def cnbc_news_feed():
+    """Get the latest breaking world news from CNBC."""
+    return macro_api_utils.cnbc_news_feed()
 

@@ -23,7 +23,7 @@ def calc(expression):
         return {"error": str(e)}
 
 
-def call_ta(ta_lib_expression):
+def calc_ta(ta_lib_expression):
     
     try:
         result = eval(ta_lib_expression, {"__builtins__": {}}, {

@@ -67,10 +67,30 @@ def get_price_history(
     period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "1mo"
 ) -> pd.DataFrame | None:
     try:
-        return yf.Ticker(ticker, session=session).history(period=period)
+        res = yf.Ticker(ticker, session=session).history(period=period)
+        # get the sample and append the tail to reduce the size
+        # cal the frac according to the size
+        # control the size less than 90
+        frac = min(len(res) / 90, 0.5)
+
+        # 假设我们要保留最近的 20 个交易日
+        recent_count = 20
+        # 分割 DataFrame
+        # 取前 n-recent_count 条记录作为较早的条目
+        early_df = res.iloc[:-recent_count]
+        # 取最后 recent_count 条记录作为最近的条目
+        recent_df = res.iloc[-recent_count:]
+        # 对较早的条目进行抽样（例如，抽样 50%）
+        sampled_early_df = early_df.sample(frac=frac)
+        # 将抽样结果与最近的条目合并
+        result_df = pd.concat([sampled_early_df, recent_df])
+        # 重新排序
+        result_df_sorted = result_df.sort_values(by='Date')
+
+        return result_df_sorted
     except Exception as e:
         logger.error(f"Error retrieving price history for {ticker}: {e}")
-        return None
+        return str(e)
 
 def get_financial_statements(
     ticker: str,

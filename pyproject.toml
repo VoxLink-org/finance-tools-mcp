@@ -1,10 +1,11 @@
 [project]
-name = "aaw-financehub-mcp"
+name = "finance-tools-mcp"
 version = "0.0.1"
 description = "A Model Context Protocol server for a collection of financial tools, modified from https://github.com/ferdousbhai/investor-agent"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fredapi>=0.5.2",
     "httpx>=0.28.1",
     "mcp[cli]>=1.2.1",
     "pyrate-limiter>=2.10.0",
@@ -27,7 +28,7 @@ classifiers = [
 ]
 
 [project.scripts]
-investor-agent = "src.investor_agent.server:mcp.run"
+finance-tools-mcp = "src.investor_agent.server:mcp.run"
 
 [build-system]
 requires = ["hatchling"]

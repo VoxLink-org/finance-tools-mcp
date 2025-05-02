@@ -1,8 +1,8 @@
-# investor-agent: A Financial Analysis MCP Server
+# finance-tools-mcp: A Financial Analysis MCP Server
 
 ## Overview
 
-The **investor-agent** is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
+The **finance-tools-mcp**, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
 
 - Detailed ticker reports including company overview, news, key metrics, performance, dates, analyst recommendations, and upgrades/downgrades.
 - Options data highlighting high open interest.
@@ -14,6 +14,12 @@ The **investor-agent** is a Model Context Protocol (MCP) server that provides co
 - Earnings history and insider trading activity.
 
 The server integrates with [yfinance](https://pypi.org/project/yfinance/) for market data retrieval and fetches Fear & Greed data from CNN.
+
+It also includes tools for calculating mathematical expressions and technical indicators using [ta-lib-python](https://pypi.org/project/ta-lib-python/).
+
+And Macro economic indicators using [fredapi](https://pypi.org/project/fredapi/).
+
+And breaking world news from [cnbc.com](https://www.cnbc.com/).
 
 Combine this with an MCP server for placing trades on a brokerage platform such as [tasty-agent](https://github.com/ferdousbhai/tasty-agent) to place trades on tastytrade platform. Make sure to also enable web search functionality if you would like to incoporate latest news in your analysis.
 
@@ -120,7 +126,7 @@ The **investor-agent** server comes with several tools to support financial anal
      - `expression` (string): The mathematical expression to evaluate.
    - **Return:** A string containing a JSON object with the calculation result (e.g., `{'result': 10}`).
 
-2. **`call_ta`**
+2. **`calc_ta`**
    - **Description:** Calculate technical indicators using ta-lib-python (TA-lib) and NumPy.
    - **Input:**
      - `ta_lib_expression` (string): The TA-Lib expression to evaluate.
@@ -130,6 +136,25 @@ The **investor-agent** server comes with several tools to support financial anal
    - **Description:** Get the current time in ISO 8601 format.
    - **Inputs:** None
    - **Return:** A string representing the current time in ISO 8601 format.
+
+### Macro Tools
+
+1. **`get_fred_series`**
+   - **Description:** Fetches a FRED series by its ID.
+   - **Input:**
+     - `series_id` (string): FRED series ID.  
+   - **Return:** A string containing the FRED series data.
+
+2. **`search_fred_series`**
+   - **Description:** Searches for the most popular FRED series by keyword.
+   - **Input:**
+     - `query` (string): Keyword to search for.
+   - **Return:** A string containing the search results.
+
+3. **`cnbc_news_feed`**
+   - **Description:** Retrieves the latest breaking world news from CNBC and others.
+   - **Inputs:** None
+   - **Return:** A string containing CNBC news feed.
 
 ### Informational Prompts
 
