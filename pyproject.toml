@@ -3,7 +3,7 @@ name = "finance-tools-mcp"
 version = "0.0.1"
 description = "A Model Context Protocol server for a collection of financial tools, modified from https://github.com/ferdousbhai/investor-agent"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "fredapi>=0.5.2",
     "httpx>=0.28.1",
