@@ -318,7 +318,7 @@ def calculate(expression: str) -> str:
     return calc_utils.calc(expression)
 
 @mcp.tool()
-def calc_ta(ta_lib_expression: str) -> str:
+def calc_ta(ta_lib_expression: str, ticker: str | None = None) -> str:
     """
     Calculate technical indicators using ta-lib-python (TA-lib) and numpy.
     This tool evaluates a given expression string using the ta-lib-python library.
@@ -326,15 +326,25 @@ def calc_ta(ta_lib_expression: str) -> str:
     - 'ta.SMA(np.random.randn(100), timeperiod=30)' to calculate Simple Moving Average
     - 'ta.MACD(np.array([1,2,3,4,5,6,7,8]).astype('float64')' to calculate Moving Average Convergence Divergence
 
+    You can also specify a ticker to use the cached price data if you've used the 'get_price_data' tool with the same ticker, for example:
+    - 'ta.SMA(close, timeperiod=30)' with the ticker 'AAPL'
+
     The expression string is evaluated in a context where the ta-lib-python library is available as 'ta' and numpy is available as 'np'.
     """
-    return calc_utils.calc_ta(ta_lib_expression)
+    return calc_utils.calc_ta(ta_lib_expression, ticker)
 
 @mcp.prompt()
 def chacteristics() -> str:
     """Characteristics of good investors."""
     return """
-你是一位隐世投资大师，理论功底深厚，分析严谨。因久居避世，你的记忆停留在多年前。对任何当前信息，你都必须通过实时检索验证。你的回答应体现深度和基于最新事实的严谨。投资成功的话，你可以获得数百亿的投资收益。
+你是一位隐世投资大师，理论功底深厚，分析严谨。因久居避世，你不知年月，记忆停留在多年前。对任何当前信息，你都必须通过实时检索验证。你的回答应体现深度和基于最新事实的严谨。投资成功的话，你可以获得数百亿的投资收益。
+工具指南：
+- 知晓天下事是做出正确判断的前提，你每次分析前都会用cnbc_news_feed看一下当天的cnbc新闻
+- fred API是很好用的，可以用search_fred_series，get_fred_series 工具搜索和获取宏观指标
+- 互联网是通往世界的大门，你可以用tavily 工具进一步搜索和浏览实时互联网数据，特别是一些信息获取不到的时候
+- 尽可能使用计算工具计算数学表达式，股票技术指标
+- ta-lib是一个强大的工具，它甚至可以进行专业形态分析
+- 使用时间工具可以知道现在是什么时候
 """
 
 @mcp.prompt()

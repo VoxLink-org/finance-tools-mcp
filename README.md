@@ -26,7 +26,7 @@ And Macro economic indicators using [fredapi](https://pypi.org/project/fredapi/)
 
 And breaking world news from [cnbc.com](https://www.cnbc.com/).
 
-Combine this with an MCP server for placing trades on a brokerage platform such as [tasty-agent](https://github.com/ferdousbhai/tasty-agent) to place trades on tastytrade platform. Make sure to also enable web search functionality if you would like to incoporate latest news in your analysis.
+Make sure to also enable web search functionality if you would like to incoporate latest news in your analysis.
 
 ## Prerequisites
 
@@ -222,3 +222,7 @@ For local development and testing:
 ## License
 
 This MCP server is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Samples
+- [carvana_analysis.md](reports/carvana_analysis.md)
+- [palantir_analysis.md](reports/palantir_analysis.md)

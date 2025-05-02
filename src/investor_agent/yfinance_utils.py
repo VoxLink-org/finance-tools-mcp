@@ -62,12 +62,25 @@ def get_upgrades_downgrades(ticker: str, limit: int = 5) -> pd.DataFrame | None:
         logger.error(f"Error retrieving upgrades/downgrades for {ticker}: {e}")
         return None
 
+# Global dictionary to cache price data
+_price_data_cache = {}
+
 def get_price_history(
     ticker: str,
     period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "1mo"
 ) -> pd.DataFrame | None:
     try:
         res = yf.Ticker(ticker, session=session).history(period=period)
+        
+        # Cache the raw price columns before sampling
+        _price_data_cache[ticker] = {
+            'close': res['Close'].values,
+            'high': res['High'].values,
+            'low': res['Low'].values,
+            'open': res['Open'].values,
+            'date': res.index.values
+        }
+        
         # get the sample and append the tail to reduce the size
         # cal the frac according to the size
         # control the size less than 90
