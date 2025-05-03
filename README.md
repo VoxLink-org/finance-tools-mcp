@@ -202,6 +202,12 @@ You can leverage the MCP inspector to debug the server:
 npx @modelcontextprotocol/inspector uvx finance-tools-mcp
 ```
 
+or
+
+```bash
+npx @modelcontextprotocol/inspector uv --directory  ./ run finance-tools-mcp
+```
+
 For log monitoring, check the following directories:
 
 - macOS: `~/Library/Logs/Claude/mcp*.log`

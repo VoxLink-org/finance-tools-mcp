@@ -12,7 +12,7 @@ from . import yfinance_utils
 from . import cnn_fng_utils
 from . import calc_utils
 from . import macro_api_utils;
-# from . import digest_time_series_utils
+from . import digest_time_series_utils
 
 logger = logging.getLogger(__name__)
 
@@ -179,13 +179,13 @@ def get_price_history(
     period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "1mo"
 ) -> str:
     """Get historical price data for specified period."""
-    history = yfinance_utils.get_price_history(ticker, period)
+    history = yfinance_utils.get_price_history(ticker, period, raw=True)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"
 
-    # digest_mode = True
-    # if digest_mode:
-    #     return digest_time_series_utils.generate_time_series_digest_for_LLM(history)
+    digest_mode = True
+    if digest_mode:
+        return digest_time_series_utils.generate_time_series_digest_for_LLM(history)
 
 
     price_data = [

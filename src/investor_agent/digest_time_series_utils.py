@@ -2,12 +2,15 @@ import pandas as pd
 import numpy as np
 import talib as ta
 from tabulate import tabulate
+import logging
+
+logger = logging.getLogger(__name__)
 
 def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
     """Generate a comprehensive quantitative digest for time series data.
     
     Args:
-        time_series_data: DataFrame containing OHLCV data with 'date' column
+        time_series_data: DataFrame containing OHLCV data with date as index
         
     Returns:
         str: Structured digest containing statistical analysis, technical indicators,
@@ -16,79 +19,73 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
     if time_series_data.empty:
         return "No time series data available."
     
+    if time_series_data.shape[0] < 20:
+        logger.warning("Not enough rows in time series data.") 
+        return tabulate(time_series_data, headers='keys', tablefmt="simple")
+
     # Data preparation
     if 'date' in time_series_data.columns:
         time_series_data['date'] = pd.to_datetime(time_series_data['date'])
         time_series_data = time_series_data.set_index('date').sort_index()
     
-    # Calculate daily returns and risk-free rate proxy (0% for simplicity)
-    time_series_data['daily_return'] = time_series_data['close'].pct_change()
-    risk_free_rate = 0.0
+    
     
     # Basic statistics
     stats = {
         'Period': f"{time_series_data.index.min().strftime('%Y-%m-%d')} to {time_series_data.index.max().strftime('%Y-%m-%d')}",
         'Trading Days': len(time_series_data),
         'Close Price': {
-            'Min': np.min(time_series_data['close']),
-            'Max': np.max(time_series_data['close']),
-            'Mean': np.mean(time_series_data['close']),
-            'Last': time_series_data['close'].iloc[-1]
+            'Min': np.min(time_series_data['Close']),
+            'Max': np.max(time_series_data['Close']),
+            'Mean': np.mean(time_series_data['Close']),
+            'Last': time_series_data['Close'].iloc[-1]
         },
         'Volume': {
-            'Total': np.sum(time_series_data['volume']),
-            'Avg': np.mean(time_series_data['volume']),
-            'Max': np.max(time_series_data['volume'])
+            'Total': np.sum(time_series_data['Volume']),
+            'Avg': np.mean(time_series_data['Volume']),
+            'Max': np.max(time_series_data['Volume'])
         }
     }
     
     # Risk-adjusted return metrics
-    annualized_return = np.mean(time_series_data['daily_return'].dropna()) * 252
-    volatility = np.std(time_series_data['daily_return'].dropna()) * np.sqrt(252)
-    sharpe_ratio = (annualized_return - risk_free_rate) / volatility if volatility != 0 else 0
     
-    risk_metrics = {
-        'Annualized Return': f"{annualized_return*100:.2f}%",
-        'Annualized Volatility': f"{volatility*100:.2f}%",
-        'Sharpe Ratio': f"{sharpe_ratio:.2f}",
-        'Max Drawdown': f"{np.min(time_series_data['close'].pct_change().cumsum())*100:.2f}%",
-        'Sortino Ratio': f"{(annualized_return - risk_free_rate) / np.std(time_series_data[time_series_data['daily_return'] < 0]['daily_return'].dropna())*np.sqrt(252):.2f}" 
-            if len(time_series_data[time_series_data['daily_return'] < 0]) > 0 else 'N/A'
-    }
-    
+    risk_metrics, sharpe_ratio, volatility = cal_risk(time_series_data)
+
     # Technical indicators
-    closes = time_series_data['close'].values
-    highs = time_series_data['high'].values
-    lows = time_series_data['low'].values
-    volumes = time_series_data['volume'].values
+    closes = time_series_data['Close'].values.astype(float)
+    highs = time_series_data['High'].values.astype(float)
+    lows = time_series_data['Low'].values.astype(float)
+    volumes = time_series_data['Volume'].values.astype(float)
     
     indicators = {
         'Trend': {
-            'SMA 20': ta.SMA(closes, 20)[-1],
-            'SMA 50': ta.SMA(closes, 50)[-1],
-            'SMA 200': ta.SMA(closes, 200)[-1],
-            'EMA 20': ta.EMA(closes, 20)[-1],
-            'MACD': ta.MACD(closes)[0][-1],
-            'ADX': ta.ADX(highs, lows, closes, 14)[-1]
+            'SMA 20': ta.SMA(closes, 20)[-1] if len(closes) >= 20 else np.nan,
+            'SMA 50': ta.SMA(closes, 50)[-1] if len(closes) >= 50 else np.nan,
+            'SMA 200': ta.SMA(closes, 200)[-1] if len(closes) >= 200 else np.nan,
+            'EMA 20': ta.EMA(closes, 20)[-1] if len(closes) >= 20 else np.nan,
+            'MACD': ta.MACD(closes, fastperiod=12, slowperiod=26, signalperiod=9)[0][-1] if len(closes) >= 35 else np.nan,
+            'ADX': ta.ADX(highs, lows, closes, timeperiod=14)[-1] if len(closes) >= 27 else np.nan
         },
         'Momentum': {
-            'RSI 14': ta.RSI(closes, 14)[-1],
-            'Stoch %K': ta.STOCH(highs, lows, closes)[0][-1],
-            'Stoch %D': ta.STOCH(highs, lows, closes)[1][-1],
-            'CCI 20': ta.CCI(highs, lows, closes, 20)[-1]
+            'RSI 14': ta.RSI(closes, 14)[-1] if len(closes) >= 15 else np.nan,
+            'Stoch %K': ta.STOCH(highs, lows, closes)[0][-1] if len(closes) >= 9 else np.nan,
+            'Stoch %D': ta.STOCH(highs, lows, closes)[1][-1] if len(closes) >= 9 else np.nan,
+            'CCI 20': ta.CCI(highs, lows, closes, 20)[-1] if len(closes) >= 20 else np.nan
         },
         'Volatility': {
-            'ATR 14': ta.ATR(highs, lows, closes, 14)[-1],
-            'BB Width': (ta.BBANDS(closes)[0][-1] - ta.BBANDS(closes)[2][-1]) / ta.BBANDS(closes)[1][-1],
-            'Chaikin Vol': ta.OBV(closes, volumes)[-1] / (ta.EMA(volumes, 10)[-1] + 1e-10)
+            'ATR 14': ta.ATR(highs, lows, closes, 14)[-1] if len(closes) >= 14 else np.nan,
+            'BB Width': ((ta.BBANDS(closes)[0][-1] - ta.BBANDS(closes)[2][-1]) / ta.BBANDS(closes)[1][-1]) if len(closes) >= 5 else np.nan,
+            'Chaikin Vol': (ta.OBV(closes, volumes)[-1] / (ta.EMA(volumes, 10)[-1] + 1e-10)) if len(closes) >= 10 else np.nan
         },
         'Volume': {
             'OBV': ta.OBV(closes, volumes)[-1],
             'AD': ta.AD(highs, lows, closes, volumes)[-1],
-            'CMF 20': ta.ADOSC(highs, lows, closes, volumes, fastperiod=3, slowperiod=10)[-1]
+            'CMF 20': ta.ADOSC(highs, lows, closes, volumes, fastperiod=3, slowperiod=10)[-1] if len(closes) >= 10 else np.nan
         }
     }
     
+    logger.info(indicators)
+
     # Trend analysis
     trend_strength = "Strong" if indicators['Trend']['ADX'] > 25 else "Weak" if indicators['Trend']['ADX'] < 20 else "Moderate"
     trend_direction = "Up" if closes[-1] > ta.EMA(closes, 20)[-1] else "Down"
@@ -143,3 +140,25 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 === END OF DIGEST ===
 """
     return digest
+
+
+def cal_risk(time_series_data: pd.DataFrame) -> dict:
+    # Calculate daily returns and risk-free rate proxy (2% for simplicity)
+    time_series_data['daily_return'] = time_series_data['Close'].pct_change()
+    risk_free_rate = 0.02
+
+    # Risk-adjusted return metrics
+    annualized_return = np.mean(time_series_data['daily_return'].dropna()) * 252
+    volatility = np.std(time_series_data['daily_return'].dropna()) * np.sqrt(252)
+    sharpe_ratio = (annualized_return - risk_free_rate) / volatility if volatility != 0 else 0
+    
+    risk_metrics = {
+        'Annualized Return': f"{annualized_return*100:.2f}%",
+        'Annualized Volatility': f"{volatility*100:.2f}%",
+        'Sharpe Ratio': f"{sharpe_ratio:.2f}",
+        'Max Drawdown': f"{((time_series_data['Close'].pct_change().cumsum() - time_series_data['Close'].pct_change().cumsum().cummax()).min())*100:.2f}%",
+        'Sortino Ratio': f"{(annualized_return - risk_free_rate) / np.std(time_series_data[time_series_data['daily_return'] < 0]['daily_return'].dropna())*np.sqrt(252):.2f}" 
+            if len(time_series_data[time_series_data['daily_return'] < 0]) > 0 else 'N/A'
+    }
+
+    return risk_metrics, sharpe_ratio, volatility

@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import talib as ta
+from src.investor_agent.yfinance_utils import _price_data_cache
 
 def calc(expression):
     try:
@@ -23,7 +24,6 @@ def calc(expression):
         return {"error": str(e)}
 
 
-from src.investor_agent.yfinance_utils import _price_data_cache
 
 def calc_ta(ta_lib_expression, ticker: str | None = None):
     try:

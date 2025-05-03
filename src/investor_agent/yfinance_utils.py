@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor
-import logging
 from requests import Session
 from typing import Literal
 from datetime import datetime
@@ -9,6 +8,7 @@ from requests_cache import CacheMixin, SQLiteCache
 from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 import yfinance as yf
 import pandas as pd
+import logging
 
 logger = logging.getLogger(__name__)
 
