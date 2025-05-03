@@ -1,7 +1,7 @@
 [project]
 name = "finance-tools-mcp"
 version = "0.0.4"
-description = "A Model Context Protocol server for a collection of financial tools, modified from https://github.com/ferdousbhai/investor-agent"
+description = "A Model Context Protocol server for a collection of financial tools, https://github.com/VoxLink-org/finance-tools-mcp, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -16,14 +16,14 @@ dependencies = [
     "yfinance[nospam]>=0.2.54",
 ]
 authors = [
-    { name = "AAW", email = "wanghsinche@hotmail.com" }
+    { name = "wanghsinche", email = "wanghsinche@hotmail.com" }
 ]
 keywords = ["investment", "finance", "trading", "agent", "mcp", "model context protocol", "broker", "robinhood", "wallstreetbets"]
 classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: End Users/Desktop",
     "Topic :: Office/Business :: Financial",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: MIT License",
 ]
 
