@@ -332,6 +332,7 @@ def calc_ta(ta_lib_expression: str, ticker: str | None = None) -> str:
     The expression should follow ta-lib-python syntax, for example:
     - 'ta.SMA(close, timeperiod=30)' with the ticker 'AAPL'
     - 'ta.ROC(close, timeperiod=30)' with the ticker 'MSFT'
+    - 'ta.RSI(close, timeperiod=14)[-1]' with the ticker 'NVDA'
     You must specify a ticker to use the cached price data if you've used the 'get_price_data' tool with the same ticker.
     If not, the expression will be evaluated in a context where only ta-lib-python and numpy are available. 
 
