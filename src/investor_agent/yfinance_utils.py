@@ -67,7 +67,8 @@ _price_data_cache = {}
 
 def get_price_history(
     ticker: str,
-    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "1mo"
+    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "1mo",
+    raw: bool = False
 ) -> pd.DataFrame | None:
     try:
         res = yf.Ticker(ticker, session=session).history(period=period)
@@ -78,13 +79,18 @@ def get_price_history(
             'high': res['High'].values,
             'low': res['Low'].values,
             'open': res['Open'].values,
+            'volume': res['Volume'].values,
+            'dividends': res['Dividends'].values,
             'date': res.index.values
         }
+        
+        if raw:
+            return res
         
         # get the sample and append the tail to reduce the size
         # cal the frac according to the size
         # control the size less than 90
-        frac = min(len(res) / 90, 0.5)
+        frac = min(90 / len(res), 0.5)
 
         # 假设我们要保留最近的 20 个交易日
         recent_count = 20

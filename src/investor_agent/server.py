@@ -7,10 +7,12 @@ import pandas as pd
 from mcp.server.fastmcp import FastMCP
 from tabulate import tabulate
 
+
 from . import yfinance_utils
 from . import cnn_fng_utils
 from . import calc_utils
 from . import macro_api_utils;
+# from . import digest_time_series_utils
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +182,11 @@ def get_price_history(
     history = yfinance_utils.get_price_history(ticker, period)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"
+
+    # digest_mode = True
+    # if digest_mode:
+    #     return digest_time_series_utils.generate_time_series_digest_for_LLM(history)
+
 
     price_data = [
         [
