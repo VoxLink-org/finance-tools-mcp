@@ -47,6 +47,12 @@ Then, you can run the **finance-tools-mcp** MCP server using `uvx`:
 uvx finance-tools-mcp
 ```
 
+If you want to use your own FRED API key, you can set it as an environment variable:
+
+```bash
+FRED_API_KEY=YOUR_API_KEY uvx finance-tools-mcp
+```
+
 ## Tools
 
 The **finance-tools-mcp** server comes with several tools to support financial analysis:
@@ -226,3 +232,4 @@ This MCP server is licensed under the MIT License. See the [LICENSE](LICENSE) fi
 ## Samples
 - [carvana_analysis.md](reports/carvana_analysis.md)
 - [palantir_analysis.md](reports/palantir_analysis.md)
+- [pdd_analysis_20250503.md](reports/pdd_analysis_20250503.md)

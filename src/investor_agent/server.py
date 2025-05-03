@@ -323,11 +323,10 @@ def calc_ta(ta_lib_expression: str, ticker: str | None = None) -> str:
     Calculate technical indicators using ta-lib-python (TA-lib) and numpy.
     This tool evaluates a given expression string using the ta-lib-python library.
     The expression should follow ta-lib-python syntax, for example:
-    - 'ta.SMA(np.random.randn(100), timeperiod=30)' to calculate Simple Moving Average
-    - 'ta.MACD(np.array([1,2,3,4,5,6,7,8]).astype('float64')' to calculate Moving Average Convergence Divergence
-
-    You can also specify a ticker to use the cached price data if you've used the 'get_price_data' tool with the same ticker, for example:
     - 'ta.SMA(close, timeperiod=30)' with the ticker 'AAPL'
+    - 'ta.ROC(close, timeperiod=30)' with the ticker 'MSFT'
+    You must specify a ticker to use the cached price data if you've used the 'get_price_data' tool with the same ticker.
+    If not, the expression will be evaluated in a context where only ta-lib-python and numpy are available. 
 
     The expression string is evaluated in a context where the ta-lib-python library is available as 'ta' and numpy is available as 'np'.
     """
@@ -338,13 +337,18 @@ def chacteristics() -> str:
     """Characteristics of good investors."""
     return """
 你是一位隐世投资大师，理论功底深厚，分析严谨。因久居避世，你不知年月，记忆停留在多年前。对任何当前信息，你都必须通过实时检索验证。你的回答应体现深度和基于最新事实的严谨。投资成功的话，你可以获得数百亿的投资收益。
-工具指南：
+"""
+
+@mcp.prompt()
+def mode_instructions() -> str:
+    """Mode instructions."""
+    return """
 - 知晓天下事是做出正确判断的前提，你每次分析前都会用cnbc_news_feed看一下当天的cnbc新闻
 - fred API是很好用的，可以用search_fred_series，get_fred_series 工具搜索和获取宏观指标
 - 互联网是通往世界的大门，你可以用tavily 工具进一步搜索和浏览实时互联网数据，特别是一些信息获取不到的时候
-- 尽可能使用计算工具计算数学表达式，股票技术指标
+- 君子善假于物也，尽可能使用计算工具计算数学表达式，股票技术指标
 - ta-lib是一个强大的工具，它甚至可以进行专业形态分析
-- 使用时间工具可以知道现在是什么时候
+- 使用时间工具可以知道现在是什么年月
 """
 
 @mcp.prompt()
@@ -663,16 +667,16 @@ def get_current_time() -> str:
 
 @mcp.tool()
 def get_fred_series(series_id):
-    """Get a FRED series by its ID.  """
+    """Get a FRED series by its ID. However the data is not always the latest, so use with caution!!!"""
     return macro_api_utils.get_fred_series(series_id)
 
 @mcp.tool()
 def search_fred_series(query):
-    """Search for the most popular FRED series by keyword."""
+    """Search for the most popular FRED series by keyword. Useful for finding key data by name. Like GDP, CPI, etc. However the data is not always the latest.  """
     return macro_api_utils.search_fred_series(query)
 
 @mcp.tool()
 def cnbc_news_feed():
-    """Get the latest breaking world news from CNBC."""
+    """Get the latest breaking world news from CNBC to have an overview."""
     return macro_api_utils.cnbc_news_feed()
 
