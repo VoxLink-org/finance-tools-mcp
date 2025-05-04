@@ -58,6 +58,18 @@ If you want to use your own FRED API key, you can set it as an environment varia
 FRED_API_KEY=YOUR_API_KEY uvx finance-tools-mcp
 ```
 
+You can also run the server using Server-Sent Events (SSE) transport:
+
+```bash
+uvx finance-tools-mcp --transport sse
+```
+
+Or with the FRED API key and SSE transport:
+
+```bash
+FRED_API_KEY=YOUR_API_KEY uvx finance-tools-mcp --transport sse
+```
+
 ## Usage with MCP Clients
 
 To integrate **finance-tools-mcp** with an MCP client (for example, Claude Desktop), add the following configuration to your `claude_desktop_config.json`:
