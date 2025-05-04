@@ -1,23 +1,9 @@
-import logging
-import sys
-
-from mcp.server.fastmcp import FastMCP
-
-
-logger = logging.getLogger(__name__)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stderr)]
-)
-
-# Initialize MCP server
-mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"])
 
 
 import logging
 import sys
+
+import argparse # Import argparse
 
 from mcp.server.fastmcp import FastMCP
 
@@ -37,43 +23,58 @@ logging.basicConfig(
 )
 
 # Initialize MCP server
-mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"])
+def main():
+    # Initialize MCP server
+    mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"])
 
-# Register yfinance tools
-mcp.add_tool(yfinance_tools.get_ticker_data)
-mcp.add_tool(yfinance_tools.get_options)
-mcp.add_tool(yfinance_tools.get_price_history)
-mcp.add_tool(yfinance_tools.get_financial_statements)
-mcp.add_tool(yfinance_tools.get_institutional_holders)
-mcp.add_tool(yfinance_tools.get_earnings_history)
-mcp.add_tool(yfinance_tools.get_insider_trades)
-mcp.add_tool(yfinance_tools.get_ticker_news_tool)
+    # Register yfinance tools
+    mcp.add_tool(yfinance_tools.get_ticker_data)
+    mcp.add_tool(yfinance_tools.get_options)
+    mcp.add_tool(yfinance_tools.get_price_history)
+    mcp.add_tool(yfinance_tools.get_financial_statements)
+    mcp.add_tool(yfinance_tools.get_institutional_holders)
+    mcp.add_tool(yfinance_tools.get_earnings_history)
+    mcp.add_tool(yfinance_tools.get_insider_trades)
+    mcp.add_tool(yfinance_tools.get_ticker_news_tool)
 
-# Register CNN Fear & Greed resources and tools
-mcp.resource("cnn://fng/current")(cnn_fng_tools.get_current_fng)
-mcp.resource("cnn://fng/history")(cnn_fng_tools.get_historical_fng)
+    # Register CNN Fear & Greed resources and tools
+    mcp.resource("cnn://fng/current")(cnn_fng_tools.get_current_fng)
+    mcp.resource("cnn://fng/history")(cnn_fng_tools.get_historical_fng)
 
-mcp.add_tool(cnn_fng_tools.get_current_fng_tool)
-mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
-mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
+    mcp.add_tool(cnn_fng_tools.get_current_fng_tool)
+    mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
+    mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
 
-# Register calculation tools
-mcp.add_tool(calc_tools.calculate)
-mcp.add_tool(calc_tools.calc_ta)
+    # Register calculation tools
+    mcp.add_tool(calc_tools.calculate)
+    mcp.add_tool(calc_tools.calc_ta)
 
-# Register macro tools
-mcp.add_tool(macro_tools.get_current_time)
-mcp.add_tool(macro_tools.get_fred_series)
-mcp.add_tool(macro_tools.search_fred_series)
-mcp.add_tool(macro_tools.cnbc_news_feed)
+    # Register macro tools
+    mcp.add_tool(macro_tools.get_current_time)
+    mcp.add_tool(macro_tools.get_fred_series)
+    mcp.add_tool(macro_tools.search_fred_series)
+    mcp.add_tool(macro_tools.cnbc_news_feed)
 
-# Register prompts
-mcp.prompt()(prompts.chacteristics)
-mcp.prompt()(prompts.mode_instructions)
-mcp.prompt()(prompts.investment_principles)
-mcp.prompt()(prompts.portfolio_construction_prompt)
+    # Register prompts
+    mcp.prompt()(prompts.chacteristics)
+    mcp.prompt()(prompts.mode_instructions)
+    mcp.prompt()(prompts.investment_principles)
+    mcp.prompt()(prompts.portfolio_construction_prompt)
 
-# Optional: Add the main execution block if it's not already there
-# if __name__ == "__main__":
-#     mcp.run()
+    # Add argument parsing
+    parser = argparse.ArgumentParser(description="Run the Finance Tools MCP server.")
+    parser.add_argument(
+        "--transport",
+        type=str,
+        choices=["stdio", "sse"],
+        default="stdio",
+        help="Transport protocol to use (stdio or sse)",
+    )
+
+    # Parse arguments and run the server
+    args = parser.parse_args()
+    mcp.run(transport=args.transport)
+
+if __name__ == "__main__":
+    main()
 
