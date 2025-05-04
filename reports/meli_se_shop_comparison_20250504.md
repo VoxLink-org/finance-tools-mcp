@@ -2,35 +2,42 @@
 
 ## 1. Fundamental Analysis
 
-```mermaid
-barChart
-    title Fundamental Metrics Comparison
-    x-axis Metric
-    y-axis Value
-    series "MELI" "SE" "SHOP"
-    Revenue Growth: 51.5 5.9 19.6
-    Profit Margin: 9.2 2.6 22.7
-    P/E Ratio: 60.6 191.6 64.0
+```vega-lite
+{
+  "$schema": "https://vega.github.io/vega-lite/v5.json",
+  "description": "Fundamental Metrics Comparison for MELI, SE, and SHOP",
+  "data": {
+    "values": [
+      {"Metric": "Revenue Growth", "Company": "MELI", "Value": 51.5},
+      {"Metric": "Revenue Growth", "Company": "SE", "Value": 5.9},
+      {"Metric": "Revenue Growth", "Company": "SHOP", "Value": 19.6},
+      {"Metric": "Profit Margin", "Company": "MELI", "Value": 9.2},
+      {"Metric": "Profit Margin", "Company": "SE", "Value": 2.6},
+      {"Metric": "Profit Margin", "Company": "SHOP", "Value": 22.7},
+      {"Metric": "P/E Ratio", "Company": "MELI", "Value": 60.6},
+      {"Metric": "P/E Ratio", "Company": "SE", "Value": 191.6},
+      {"Metric": "P/E Ratio", "Company": "SHOP", "Value": 64.0}
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "Company", "type": "nominal", "axis": null},
+    "y": {"field": "Value", "type": "quantitative"},
+    "color": {"field": "Company", "type": "nominal"},
+    "column": {"field": "Metric", "type": "nominal", "header": {"titleOrient": "bottom", "labelOrient": "bottom"}}
+  },
+  "config": {
+    "categoryField": {"title": "Metric"}
+  },
+  "width": 100
+}
 ```
-
-Key Observations:
 - MELI shows highest revenue growth (51.5% ROE) but moderate profit margin (9.2%)
 - SHOP has strongest profitability (22.7% margin) but faces tariff risks
 - SE has weakest fundamentals (5.9% ROE) with excessive valuation (191.6 P/E)
 
 ## 2. Technical Analysis
 
-```mermaid
-lineChart
-    title 1-Year Price Performance
-    x-axis Months
-    y-axis Price
-    series "MELI" "SE" "SHOP"
-    Jan-2025: 1800 100 85
-    May-2025: 2280 141 99
-```
-
-Key Observations:
 - SE had strongest rally (+112.7%) but with high volatility (43.4%)
 - MELI showed steady growth (+39.9%) with better risk-adjusted returns
 - SHOP struggled with -47.5% max drawdown despite 33.3% annual gain
