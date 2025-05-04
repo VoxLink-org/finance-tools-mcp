@@ -1,3 +1,4 @@
+import random
 import fredapi as fr
 import httpx
 import os
@@ -49,10 +50,12 @@ def search_fred_series(query):
     except Exception as e:
         return {'error': str(e)}
 
-def cnbc_news_feed():
+def breaking_news_feed():
+    # the world only needs three financial centers, ny, london, and hongkong
+    # https://en.wikipedia.org/wiki/Global_Financial_Centres_Index
     cnbc = 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114'
-    ft = 'https://www.ft.com/personal-finance?format=rss'
     bbc = 'https://feeds.bbci.co.uk/news/world/rss.xml'
+    scmp = 'https://www.scmp.com/rss/91/feed'
 
     news_items = []
 
@@ -61,48 +64,69 @@ def cnbc_news_feed():
         response = httpx.get(cnbc)
         root = ET.fromstring(response.text)
         
+        news_items_for_pickup = []
+
         for item in root.findall('.//item'):
             title = item.find('title').text if item.find('title') is not None else 'No title'
             description = item.find('description').text if item.find('description') is not None else 'No description'
             pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
             
-            news_items.append({
+            news_items_for_pickup.append({
                 'title': title,
                 'description': description,
                 'date': pub_date
             })
+        
+        news_items.append(news_items_for_pickup) 
+        
     except Exception as e:
         logger.error(f"Error retrieving cnbc news feed: {e}")
 
-        # 补充 ft 数据
-        # response = httpx.get(ft)
-        # root = ET.fromstring(response.text)
-        
-        # for item in root.findall('.//item'):
-        #     title = item.find('title').text if item.find('title') is not None else 'No title'
-        #     pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
-            
-        #     news_items.append({
-        #         'title': title,
-        #         'date': pub_date
-        #     })
     try:        
         # 补充bbc
         response = httpx.get(bbc)
         root = ET.fromstring(response.text)
         
+        news_items_for_pickup = []
+
+
         for item in root.findall('.//item'):
             title = item.find('title').text if item.find('title') is not None else 'No title'
             description = item.find('description').text if item.find('description') is not None else 'No description'
             pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
             
-            news_items.append({
+            news_items_for_pickup.append({
+                'title': title,
+                'description': description,
+                'date': pub_date
+            })
+        
+        news_items.append(random.choices(news_items_for_pickup, k=6))
+
+    except Exception as e:
+        logger.error(f"Error retrieving bbc news feed: {e}")
+
+    try:
+        response = httpx.get(scmp)
+        root = ET.fromstring(response.text)
+        
+        news_items_for_pickup = []
+
+        for item in root.findall('.//item'):
+            title = item.find('title').text if item.find('title') is not None else 'No title'
+            description = item.find('description').text if item.find('description') is not None else 'No description'
+            pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
+            
+            news_items_for_pickup.append({
                 'title': title,
                 'description': description,
                 'date': pub_date
             })
 
+        news_items.append(random.choices(news_items_for_pickup, k=6))
     except Exception as e:
-        logger.error(f"Error retrieving bbc news feed: {e}")
+        logger.error(f"Error retrieving scmp news feed: {e}")
+        
+
 
     return news_items

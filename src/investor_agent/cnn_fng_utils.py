@@ -47,16 +47,16 @@ async def fetch_fng_data() -> dict | None:
                     return int(ts_value) # Assume already in milliseconds if numeric
                 elif isinstance(ts_value, str):
                     try:
-                        # Handle ISO format strings like '2025-04-30T00:00:00+00:00'
-                        # Remove colon from timezone offset if present for compatibility
-                        if ":" == ts_value[-3:-2]:
-                           ts_value = ts_value[:-3] + ts_value[-2:]
+                        # datetime.fromisoformat can handle ISO format strings with or without colon in timezone offset
+                        # Formats: '2025-04-30T00:00:00+00:00' or '2025-05-02T23:59:56+0000'
                         dt_obj = datetime.fromisoformat(ts_value).astimezone(timezone.utc)
                         return int(dt_obj.timestamp() * 1000) # Convert to milliseconds
                     except ValueError:
                         logger.warning(f"Could not parse timestamp string: {ts_value}")
                         return None # Or handle error as needed
-                logger.warning(f"Unexpected timestamp type: {type(ts_value)}, value: {ts_value}")
+                    except TypeError:
+                         logger.warning(f"Unexpected timestamp type: {type(ts_value)}, value: {ts_value}")
+                         return None
                 return None
 
             # Process current fear_and_greed timestamp

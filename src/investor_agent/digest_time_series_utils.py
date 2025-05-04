@@ -4,6 +4,8 @@ import talib as ta
 from tabulate import tabulate
 import logging
 
+from src.investor_agent.digest_ta_utils import tech_indicators
+
 logger = logging.getLogger(__name__)
 
 def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
@@ -38,7 +40,8 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
             'Min': np.min(time_series_data['Close']),
             'Max': np.max(time_series_data['Close']),
             'Mean': np.mean(time_series_data['Close']),
-            'Last': time_series_data['Close'].iloc[-1]
+            'Last': time_series_data['Close'].iloc[-1],
+            'Percent Change': (time_series_data['Close'].iloc[-1] - time_series_data['Close'].iloc[0]) / time_series_data['Close'].iloc[0]  
         },
         'Volume': {
             'Total': np.sum(time_series_data['Volume']),
@@ -47,47 +50,14 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
         }
     }
     
+    # Technical indicators
+    indicators_details = tech_indicators(time_series_data)
+
+
     # Risk-adjusted return metrics
     
     risk_metrics, sharpe_ratio, volatility = cal_risk(time_series_data)
 
-    # Technical indicators
-    closes = time_series_data['Close'].values.astype(float)
-    highs = time_series_data['High'].values.astype(float)
-    lows = time_series_data['Low'].values.astype(float)
-    volumes = time_series_data['Volume'].values.astype(float)
-    
-    indicators = {
-        'Trend': {
-            'SMA 20': ta.SMA(closes, 20)[-1] if len(closes) >= 20 else np.nan,
-            'SMA 50': ta.SMA(closes, 50)[-1] if len(closes) >= 50 else np.nan,
-            'SMA 200': ta.SMA(closes, 200)[-1] if len(closes) >= 200 else np.nan,
-            'EMA 20': ta.EMA(closes, 20)[-1] if len(closes) >= 20 else np.nan,
-            'MACD': ta.MACD(closes, fastperiod=12, slowperiod=26, signalperiod=9)[0][-1] if len(closes) >= 35 else np.nan,
-            'ADX': ta.ADX(highs, lows, closes, timeperiod=14)[-1] if len(closes) >= 27 else np.nan
-        },
-        'Momentum': {
-            'RSI 14': ta.RSI(closes, 14)[-1] if len(closes) >= 15 else np.nan,
-            'Stoch %K': ta.STOCH(highs, lows, closes)[0][-1] if len(closes) >= 9 else np.nan,
-            'Stoch %D': ta.STOCH(highs, lows, closes)[1][-1] if len(closes) >= 9 else np.nan,
-            'CCI 20': ta.CCI(highs, lows, closes, 20)[-1] if len(closes) >= 20 else np.nan
-        },
-        'Volatility': {
-            'ATR 14': ta.ATR(highs, lows, closes, 14)[-1] if len(closes) >= 14 else np.nan,
-            'BB Width': ((ta.BBANDS(closes)[0][-1] - ta.BBANDS(closes)[2][-1]) / ta.BBANDS(closes)[1][-1]) if len(closes) >= 5 else np.nan,
-            'Chaikin Vol': (ta.OBV(closes, volumes)[-1] / (ta.EMA(volumes, 10)[-1] + 1e-10)) if len(closes) >= 10 else np.nan
-        },
-        'Volume': {
-            'OBV': ta.OBV(closes, volumes)[-1],
-            'AD': ta.AD(highs, lows, closes, volumes)[-1],
-            'CMF 20': ta.ADOSC(highs, lows, closes, volumes, fastperiod=3, slowperiod=10)[-1] if len(closes) >= 10 else np.nan
-        }
-    }
-    
-
-    # Trend analysis
-    trend_strength = "Strong" if indicators['Trend']['ADX'] > 25 else "Weak" if indicators['Trend']['ADX'] < 20 else "Moderate"
-    trend_direction = "Up" if closes[-1] > ta.EMA(closes, 20)[-1] else "Down"
     
 
     # Latest 20 days sample
@@ -105,44 +75,23 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 {tabulate([[stats['Period'], stats['Trading Days']]], headers=['Period', 'Trading Days'], tablefmt='grid')}
 
 2. PRICE STATISTICS
-{tabulate([[stats['Close Price']['Min'], stats['Close Price']['Max'], stats['Close Price']['Mean'], stats['Close Price']['Last']]], 
-          headers=['Min', 'Max', 'Mean', 'Last'], tablefmt='grid', floatfmt=".2f")}
+{tabulate([[stats['Close Price']['Min'], stats['Close Price']['Max'], stats['Close Price']['Mean'], stats['Close Price']['Last'], stats['Close Price']['Percent Change']]], 
+          headers=['Min', 'Max', 'Mean', 'Last', 'Percent Change'], tablefmt='simple', floatfmt=".2f")}
 
 3. VOLUME ANALYSIS
 {tabulate([[stats['Volume']['Total'], stats['Volume']['Avg'], stats['Volume']['Max']]], 
-          headers=['Total Volume', 'Avg Volume', 'Max Volume'], tablefmt='grid')}
+          headers=['Total Volume', 'Avg Volume', 'Max Volume'], tablefmt='simple')}
 
 4. RISK METRICS
 {tabulate([[risk_metrics['Annualized Return'], risk_metrics['Annualized Volatility'], 
             risk_metrics['Sharpe Ratio'], risk_metrics['Max Drawdown'], risk_metrics['Sortino Ratio']]], 
-          headers=['Return', 'Volatility', 'Sharpe', 'Max DD', 'Sortino'], tablefmt='grid')}
+          headers=['Annualized Return', 'Annualized Volatility', 'Annualized Sharpe', 'Max DD', 'Sortino'], tablefmt='simple')}
 
 5. TECHNICAL INDICATORS
-   A. Trend Indicators:
-   - 20/50/200 SMA: {indicators['Trend']['SMA 20']:.2f}/{indicators['Trend']['SMA 50']:.2f}/{indicators['Trend']['SMA 200']:.2f}
-   - EMA 20: {indicators['Trend']['EMA 20']:.2f}
-   - MACD: {indicators['Trend']['MACD']:.2f}
-   - ADX: {indicators['Trend']['ADX']:.2f} ({trend_strength} trend)
-   
-   B. Momentum Indicators:
-   - RSI 14: {indicators['Momentum']['RSI 14']:.2f} ({'Overbought' if indicators['Momentum']['RSI 14'] > 70 else 'Oversold' if indicators['Momentum']['RSI 14'] < 30 else 'Neutral'})
-   - Stochastic: K={indicators['Momentum']['Stoch %K']:.2f}, D={indicators['Momentum']['Stoch %D']:.2f}
-   - CCI 20: {indicators['Momentum']['CCI 20']:.2f}
-   
-   C. Volatility:
-   - ATR 14: {indicators['Volatility']['ATR 14']:.2f}
-   - BB Width: {indicators['Volatility']['BB Width']:.2%}
-   
-   D. Volume Indicators:
-   - OBV: {indicators['Volume']['OBV']:,.0f}
-   - AD: {indicators['Volume']['AD']:,.0f}
+{indicators_details}
 
 6. QUALITATIVE ASSESSMENT
-- The current trend is {trend_direction} with {trend_strength.lower()} strength.
 - Volatility is {'high' if volatility > 0.2 else 'moderate' if volatility > 0.1 else 'low'} compared to historical averages.
-- Volume activity is {'increasing' if indicators['Volume']['OBV'] > ta.EMA(np.array(list(indicators['Volume'].values())[:3]), 10)[-1] 
-                    else 'decreasing' if indicators['Volume']['OBV'] < ta.EMA(np.array(list(indicators['Volume'].values())[:3]), 10)[-1] 
-                    else 'stable'}.
 - Risk-adjusted returns are {'attractive' if sharpe_ratio > 1 else 'moderate' if sharpe_ratio > 0.5 else 'poor'}.
 
 7. PATTERN RECOGNITION
@@ -195,6 +144,10 @@ def pattern_recognition(time_series_data: pd.DataFrame) -> str:
         time_series_data['date'] = pd.to_datetime(time_series_data['date'])
         time_series_data = time_series_data.set_index('date').sort_index()
 
+    period = min(60, len(time_series_data))
+
+    time_series_data = time_series_data[-period:]
+
     opens = time_series_data['Open'].values.astype(float)
     highs = time_series_data['High'].values.astype(float)
     lows = time_series_data['Low'].values.astype(float)
@@ -233,6 +186,7 @@ def pattern_recognition(time_series_data: pd.DataFrame) -> str:
     if not detected_patterns:
         return "No significant chart patterns detected in the given period."
     else:
-        return "\n" + \
+        return f"\n Patterns Detected in the last {period} days:\n" + \
                "\n".join(detected_patterns) + \
                "\n"
+
