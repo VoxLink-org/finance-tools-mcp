@@ -161,7 +161,7 @@ def get_price_history(
     ticker: str,
     period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "3mo"
 ) -> str:
-    """Get historical price data digest for specified period. Usually get at least 3 months data."""
+    """Get historical price data digest for specified period. Usually get at least 3 months, 6 months or more."""
     history = yfinance_utils.get_price_history(ticker, period, raw=True)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"
@@ -288,3 +288,13 @@ def get_insider_trades(ticker: str) -> str:
 
     return (f"INSIDER TRADES FOR {ticker}:\n" +
             tabulate(trades_data, headers=["Date", "Insider", "Title", "Transaction", "Shares", "Value"], tablefmt="plain"))
+
+def get_ticker_news_tool(ticker: str) -> str:
+    """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""
+    news = yfinance_utils.get_ticker_news(ticker)
+
+    if news is None or len(news) == 0:
+        return f"No news found for {ticker}"
+
+    
+    return news

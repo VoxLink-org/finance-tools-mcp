@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import random
 from requests import Session
 from typing import Literal
 from datetime import datetime
@@ -9,6 +10,7 @@ from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 import yfinance as yf
 import pandas as pd
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -264,3 +266,24 @@ def get_filtered_options(
     except Exception as e:
         logger.error(f"Error in get_filtered_options: {str(e)}", exc_info=True)
         return None, f"Failed to retrieve options data: {str(e)}"
+    
+
+def get_ticker_news(ticker: str) -> list | None:
+    try:
+        news = yf.Ticker(ticker, session=session).news[:10]  # Limit to top 10
+
+        news = random.sample(news, max(5, len(news)))
+
+        res = []
+
+        for item in news:
+            res.append({
+                'date': item['content']['pubDate'],
+                'title': item['content']['title'],
+                'summary': item['content']['summary']
+            })
+
+        return res
+    except Exception as e:
+        logger.error(f"Error retrieving ticker news for {ticker}: {e}")
+        return None

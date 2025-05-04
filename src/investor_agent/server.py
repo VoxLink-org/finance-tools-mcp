@@ -47,6 +47,7 @@ mcp.add_tool(yfinance_tools.get_financial_statements)
 mcp.add_tool(yfinance_tools.get_institutional_holders)
 mcp.add_tool(yfinance_tools.get_earnings_history)
 mcp.add_tool(yfinance_tools.get_insider_trades)
+mcp.add_tool(yfinance_tools.get_ticker_news_tool)
 
 # Register CNN Fear & Greed resources and tools
 mcp.resource("cnn://fng/current")(cnn_fng_tools.get_current_fng)

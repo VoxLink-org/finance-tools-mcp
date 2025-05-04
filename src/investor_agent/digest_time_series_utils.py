@@ -41,7 +41,7 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
             'Max': np.max(time_series_data['Close']),
             'Mean': np.mean(time_series_data['Close']),
             'Last': time_series_data['Close'].iloc[-1],
-            'Percent Change': (time_series_data['Close'].iloc[-1] - time_series_data['Close'].iloc[0]) / time_series_data['Close'].iloc[0]  
+            'Change': (time_series_data['Close'].iloc[-1] - time_series_data['Close'].iloc[0]) / time_series_data['Close'].iloc[0]  
         },
         'Volume': {
             'Total': np.sum(time_series_data['Volume']),
@@ -75,8 +75,8 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 {tabulate([[stats['Period'], stats['Trading Days']]], headers=['Period', 'Trading Days'], tablefmt='grid')}
 
 2. PRICE STATISTICS
-{tabulate([[stats['Close Price']['Min'], stats['Close Price']['Max'], stats['Close Price']['Mean'], stats['Close Price']['Last'], stats['Close Price']['Percent Change']]], 
-          headers=['Min', 'Max', 'Mean', 'Last', 'Percent Change'], tablefmt='simple', floatfmt=".2f")}
+{tabulate([[stats['Close Price']['Min'], stats['Close Price']['Max'], stats['Close Price']['Mean'], stats['Close Price']['Last'], f"{stats['Close Price']['Change']*100:.2f}%"]], 
+          headers=['Min', 'Max', 'Mean', 'Last', 'Period Change'], tablefmt='simple', floatfmt=".2f")}
 
 3. VOLUME ANALYSIS
 {tabulate([[stats['Volume']['Total'], stats['Volume']['Avg'], stats['Volume']['Max']]], 
@@ -97,7 +97,7 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 7. PATTERN RECOGNITION
 {pattern}
 
-8. LATEST 20 DAYS OHLCV 
+8. LATEST 20 DAYS OHLCV SAMPLE
 
 {tabulate(latest_20.values.tolist(), headers=latest_20.columns, tablefmt='simple', floatfmt=".2f")}
 

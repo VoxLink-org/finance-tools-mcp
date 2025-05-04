@@ -20,18 +20,34 @@ def get_tendency_of_last_20_days(series: np.ndarray) -> tuple[float, int, int]:
     """
     if len(series) < 20:
         # Return NaN for slope and 0 for counts if insufficient data
-        return np.nan, 0, 0
+        return "insufficient data", 0, 0
         
     last_20 = series[-20:]
     x = np.arange(len(last_20))
     slope, _ = np.polyfit(x, last_20, 1)
+    
+    # Normalize slope by average price
+    avg_price = np.mean(last_20)
+    normalized_slope = slope / avg_price
     
     # Calculate up and down counts
     price_changes = np.diff(last_20)
     up_count = np.sum(price_changes > 0)
     down_count = np.sum(price_changes < 0)
     
-    return slope, up_count, down_count
+    # Convert normalized slope to trend description
+    if normalized_slope > 0.005:
+        trend = "strong upward trend"
+    elif normalized_slope > 0.001:
+        trend = "moderate upward trend"
+    elif normalized_slope >= -0.001:
+        trend = "flat trend"
+    elif normalized_slope >= -0.005:
+        trend = "moderate downward trend"
+    else:
+        trend = "strong downward trend"
+    
+    return trend, up_count, down_count
 
 def tech_indicators(time_series_data: pd.DataFrame) -> str:
     """Extract and analyze technical indicators from time series data.
@@ -112,29 +128,29 @@ def tech_indicators(time_series_data: pd.DataFrame) -> str:
     
 
     trend_data = [
-        ["SMA 20", f"{indicators['Trend']['SMA 20']:.2f}", f"{tendencies['Trend']['SMA 20'][0]:.4f}", f"{tendencies['Trend']['SMA 20'][1]:.0f}", f"{tendencies['Trend']['SMA 20'][2]:.0f}"],
+        ["SMA 20", f"{indicators['Trend']['SMA 20']:.2f}", f"{tendencies['Trend']['SMA 20'][0]}", f"{tendencies['Trend']['SMA 20'][1]:.0f}", f"{tendencies['Trend']['SMA 20'][2]:.0f}"],
         ["SMA 50", f"{indicators['Trend']['SMA 50']:.2f}", "N/A", "N/A", "N/A"],
         ["SMA 200", f"{indicators['Trend']['SMA 200']:.2f}", "N/A", "N/A", "N/A"],
-        ["EMA 20", f"{indicators['Trend']['EMA 20']:.2f}", f"{tendencies['Trend']['EMA 20'][0]:.4f}", f"{tendencies['Trend']['EMA 20'][1]:.0f}", f"{tendencies['Trend']['EMA 20'][2]:.0f}"],
-        ["MACD", f"{indicators['Trend']['MACD']:.2f}", f"{tendencies['Trend']['MACD'][0]:.4f}", f"{tendencies['Trend']['MACD'][1]:.0f}", f"{tendencies['Trend']['MACD'][2]:.0f}"],
-        ["ADX", f"{indicators['Trend']['ADX']:.2f} ({trend_strength} trend)", f"{tendencies['Trend']['ADX'][0]:.4f}", f"{tendencies['Trend']['ADX'][1]:.0f}", f"{tendencies['Trend']['ADX'][2]:.0f}"]
+        ["EMA 20", f"{indicators['Trend']['EMA 20']:.2f}", f"{tendencies['Trend']['EMA 20'][0]}", f"{tendencies['Trend']['EMA 20'][1]:.0f}", f"{tendencies['Trend']['EMA 20'][2]:.0f}"],
+        ["MACD", f"{indicators['Trend']['MACD']:.2f}", f"{tendencies['Trend']['MACD'][0]}", f"{tendencies['Trend']['MACD'][1]:.0f}", f"{tendencies['Trend']['MACD'][2]:.0f}"],
+        ["ADX", f"{indicators['Trend']['ADX']:.2f} ({trend_strength} trend)", f"{tendencies['Trend']['ADX'][0]}", f"{tendencies['Trend']['ADX'][1]:.0f}", f"{tendencies['Trend']['ADX'][2]:.0f}"]
     ]
 
     momentum_data = [
-        ["RSI 14", f"{indicators['Momentum']['RSI 14']:.2f} ({'Overbought' if indicators['Momentum']['RSI 14'] > 70 else 'Oversold' if indicators['Momentum']['RSI 14'] < 30 else 'Neutral'})", f"{tendencies['Momentum']['RSI 14'][0]:.4f}", f"{tendencies['Momentum']['RSI 14'][1]:.0f}", f"{tendencies['Momentum']['RSI 14'][2]:.0f}"],
-        ["Stochastic %K", f"{indicators['Momentum']['Stoch %K']:.2f}", f"{tendencies['Momentum']['Stoch %K'][0]:.4f}", f"{tendencies['Momentum']['Stoch %K'][1]:.0f}", f"{tendencies['Momentum']['Stoch %K'][2]:.0f}"],
-        ["Stochastic %D", f"{indicators['Momentum']['Stoch %D']:.2f}", f"{tendencies['Momentum']['Stoch %D'][0]:.4f}", f"{tendencies['Momentum']['Stoch %D'][1]:.0f}", f"{tendencies['Momentum']['Stoch %D'][2]:.0f}"],
-        ["CCI 20", f"{indicators['Momentum']['CCI 20']:.2f}", f"{tendencies['Momentum']['CCI 20'][0]:.4f}", f"{tendencies['Momentum']['CCI 20'][1]:.0f}", f"{tendencies['Momentum']['CCI 20'][2]:.0f}"]
+        ["RSI 14", f"{indicators['Momentum']['RSI 14']:.2f} ({'Overbought' if indicators['Momentum']['RSI 14'] > 70 else 'Oversold' if indicators['Momentum']['RSI 14'] < 30 else 'Neutral'})", f"{tendencies['Momentum']['RSI 14'][0]}", f"{tendencies['Momentum']['RSI 14'][1]:.0f}", f"{tendencies['Momentum']['RSI 14'][2]:.0f}"],
+        ["Stochastic %K", f"{indicators['Momentum']['Stoch %K']:.2f}", f"{tendencies['Momentum']['Stoch %K'][0]}", f"{tendencies['Momentum']['Stoch %K'][1]:.0f}", f"{tendencies['Momentum']['Stoch %K'][2]:.0f}"],
+        ["Stochastic %D", f"{indicators['Momentum']['Stoch %D']:.2f}", f"{tendencies['Momentum']['Stoch %D'][0]}", f"{tendencies['Momentum']['Stoch %D'][1]:.0f}", f"{tendencies['Momentum']['Stoch %D'][2]:.0f}"],
+        ["CCI 20", f"{indicators['Momentum']['CCI 20']:.2f}", f"{tendencies['Momentum']['CCI 20'][0]}", f"{tendencies['Momentum']['CCI 20'][1]:.0f}", f"{tendencies['Momentum']['CCI 20'][2]:.0f}"]
     ]
 
     volatility_data = [
-        ["ATR 14", f"{indicators['Volatility']['ATR 14']:.2f}", f"{tendencies['Volatility']['ATR 14'][0]:.4f}", f"{tendencies['Volatility']['ATR 14'][1]:.0f}", f"{tendencies['Volatility']['ATR 14'][2]:.0f}"],
-        ["BB Width", f"{indicators['Volatility']['BB Width']:.2%}", f"{tendencies['Volatility']['BB Width'][0]:.4f}", f"{tendencies['Volatility']['BB Width'][1]:.0f}", f"{tendencies['Volatility']['BB Width'][2]:.0f}"]
+        ["ATR 14", f"{indicators['Volatility']['ATR 14']:.2f}", f"{tendencies['Volatility']['ATR 14'][0]}", f"{tendencies['Volatility']['ATR 14'][1]:.0f}", f"{tendencies['Volatility']['ATR 14'][2]:.0f}"],
+        ["BB Width", f"{indicators['Volatility']['BB Width']:.2%}", f"{tendencies['Volatility']['BB Width'][0]}", f"{tendencies['Volatility']['BB Width'][1]:.0f}", f"{tendencies['Volatility']['BB Width'][2]:.0f}"]
     ]
 
     volume_data = [
-        ["OBV", f"{indicators['Volume']['OBV']:,.0f}", f"{tendencies['Volume']['OBV'][0]:.4f}", f"{tendencies['Volume']['OBV'][1]:.0f}", f"{tendencies['Volume']['OBV'][2]:.0f}"],
-        ["AD", f"{indicators['Volume']['AD']:,.0f}", f"{tendencies['Volume']['AD'][0]:.4f}", f"{tendencies['Volume']['AD'][1]:.0f}", f"{tendencies['Volume']['AD'][2]:.0f}"]
+        ["OBV", f"{indicators['Volume']['OBV']:,.0f}", f"{tendencies['Volume']['OBV'][0]}", f"{tendencies['Volume']['OBV'][1]:.0f}", f"{tendencies['Volume']['OBV'][2]:.0f}"],
+        ["AD", f"{indicators['Volume']['AD']:,.0f}", f"{tendencies['Volume']['AD'][0]}", f"{tendencies['Volume']['AD'][1]:.0f}", f"{tendencies['Volume']['AD'][2]:.0f}"]
     ]
 
     headers = ["Indicator", "Value", "Last 20 Days Slope", "Up Times", "Down Times"]
