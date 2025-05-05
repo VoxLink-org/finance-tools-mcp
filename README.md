@@ -1,7 +1,6 @@
 # finance-tools-mcp: A Financial Analysis MCP Server
 > https://github.com/VoxLink-org/finance-tools-mcp
 
-
 ## Overview
 
 The **finance-tools-mcp** , modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
@@ -18,6 +17,9 @@ The **finance-tools-mcp** , modified from [investor-agent](https://github.com/fe
 - FRED series search results.
 - Technical indicators using ta-lib-python.
 
+<a href="https://glama.ai/mcp/servers/@VoxLink-org/finance-tools-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@VoxLink-org/finance-tools-mcp/badge" alt="Finance Tools MCP server" />
+</a>
 
 The server integrates with [yfinance](https://pypi.org/project/yfinance/) for market data retrieval and fetches Fear & Greed data from CNN.
 
