@@ -3,7 +3,8 @@
 import logging
 import sys
 
-import argparse # Import argparse
+import argparse
+
 
 from mcp.server.fastmcp import FastMCP
 
@@ -13,6 +14,7 @@ from . import cnn_fng_tools
 from . import calc_tools
 from . import macro_tools
 from . import prompts
+from . import sse_server
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,10 @@ def main():
 
     # Parse arguments and run the server
     args = parser.parse_args()
-    mcp.run(transport=args.transport)
+    if args.transport == "sse":
+        sse_server.run_sse_server(mcp)
+    else:
+        mcp.run(transport=args.transport)
 
 if __name__ == "__main__":
     main()
