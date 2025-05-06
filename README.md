@@ -131,3 +131,8 @@ This MCP server is licensed under the MIT License. See the [LICENSE](LICENSE) fi
 - [palantir_analysis.md](reports/palantir_analysis.md)
 - [pdd_analysis_20250503.md](reports/pdd_analysis_20250503.md)
 - [meli_se_shop_comparison_20250504.md](reports/meli_se_shop_comparison_20250504.md)
+
+
+## Todo
+[ ] Add supporting levels and resistance levels for stocks
+[ ] Add Fibonacci retracement levels for stocks
