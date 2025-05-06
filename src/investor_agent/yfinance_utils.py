@@ -10,12 +10,18 @@ from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 import yfinance as yf
 import pandas as pd
 import logging
-import json
+from curl_cffi import Session as CurlSession
+
+class ChromeSession(CurlSession):
+    def __init__(self, **kwargs):
+        kwargs['impersonate'] = "chrome"
+        super().__init__(**kwargs)
+
 
 logger = logging.getLogger(__name__)
 
 # Create a session class that combines caching and rate limiting
-class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
+class CachedLimiterSession(CacheMixin, LimiterMixin,ChromeSession):
     pass
 
 # Create a session with rate limiting and caching
@@ -23,6 +29,7 @@ session = CachedLimiterSession(
     limiter=Limiter(RequestRate(5, Duration.SECOND)),
     bucket_class=MemoryQueueBucket,
     backend=SQLiteCache("yfinance.cache", expire_after=3600),
+    ignored_parameters=["sessionId", "crumb"]
 )
 
 def get_ticker_info(ticker: str) -> dict | None:
