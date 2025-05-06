@@ -113,7 +113,7 @@ def cal_bullish_divergence(time_series_data: pd.DataFrame) -> str:
         return "No significant bullish divergence detected recently."
 
 
-def calculate_fibonacci_retracement(time_series_data: pd.DataFrame) -> Dict[str, str]:
+def calculate_fibonacci_retracement(time_series_data: pd.DataFrame) -> str:
     """
     Calculate Fibonacci retracement levels based on the most recent significant swing high and low.
     
