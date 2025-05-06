@@ -4,6 +4,7 @@ import numpy as np
 import talib as ta
 from tabulate import tabulate
 import logging
+from typing import Tuple, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,91 @@ def cal_bullish_divergence(time_series_data: pd.DataFrame) -> str:
         return "Possible Bullish Divergence Signals:\n" + "\n".join(divergences)
     else:
         return "No significant bullish divergence detected recently."
+
+
+def calculate_fibonacci_retracement(time_series_data: pd.DataFrame) -> Dict[str, str]:
+    """
+    Calculate Fibonacci retracement levels based on the most recent significant swing high and low.
+    
+    Fibonacci retracement levels are horizontal lines that indicate where support and resistance
+    are likely to occur. They are calculated by taking the high and low of a price movement
+    and dividing the vertical distance by the key Fibonacci ratios of 23.6%, 38.2%, 50%, 
+    61.8% and 78.6%.
+    
+    Args:
+        time_series_data: DataFrame containing OHLCV data with date as index.
+    
+    Returns:
+        Dict[str, str]: A dictionary containing:
+            - 'levels': Fibonacci levels with prices
+            - 'current_price': Current price position relative to levels
+            - 'trend': Current trend direction (uptrend/downtrend)
+            - 'swing_high': Swing high price and date
+            - 'swing_low': Swing low price and date
+    """
+    if len(time_series_data) < 30:
+        return {"error": "Insufficient data (minimum 30 periods required)"}
+    
+    closes = time_series_data['Close'].values
+    highs = time_series_data['High'].values
+    lows = time_series_data['Low'].values
+    dates = time_series_data.index
+    
+    # Find most recent significant swing high and low
+    def find_swing_points(prices: np.ndarray, window: int = 10) -> Tuple[int, int]:
+        swing_high_idx = np.argmax(prices[-window:]) + len(prices) - window
+        swing_low_idx = np.argmin(prices[-window:]) + len(prices) - window
+        return swing_high_idx, swing_low_idx
+    
+    swing_high_idx, swing_low_idx = find_swing_points(closes)
+    
+    # Determine trend direction
+    if swing_high_idx > swing_low_idx:
+        trend = "uptrend"
+        start_price = lows[swing_low_idx]
+        end_price = highs[swing_high_idx]
+    else:
+        trend = "downtrend"
+        start_price = highs[swing_high_idx]
+        end_price = lows[swing_low_idx]
+    
+    price_range = end_price - start_price
+    current_price = closes[-1]
+    
+    # Calculate Fibonacci levels
+    levels = {
+        '0%': end_price,
+        '23.6%': end_price - 0.236 * price_range,
+        '38.2%': end_price - 0.382 * price_range,
+        '50%': end_price - 0.5 * price_range,
+        '61.8%': end_price - 0.618 * price_range,
+        '78.6%': end_price - 0.786 * price_range,
+        '100%': start_price
+    }
+    
+    # Determine current price position relative to levels
+    level_position = ""
+    prev_level = None
+    for level_name, level_price in sorted(levels.items(), key=lambda x: x[1], reverse=True):
+        if current_price >= level_price:
+            if prev_level:
+                level_position = f"Between {prev_level[0]} ({prev_level[1]:.2f}) and {level_name} ({level_price:.2f})"
+            else:
+                level_position = f"Above {level_name} ({level_price:.2f})"
+            break
+        prev_level = (level_name, level_price)
+    else:
+        level_position = f"Below 100% ({start_price:.2f})"
+    
+    rows = {
+        "levels": [f"{k}: {v:.2f}" for k, v in levels.items()],
+        "current_price": level_position,
+        "trend": trend,
+        "swing_high": f"{highs[swing_high_idx]:.2f} on {dates[swing_high_idx]}",
+        "swing_low": f"{lows[swing_low_idx]:.2f} on {dates[swing_low_idx]}"
+    }
+    text = ''
+    for k, v in rows.items():
+        text += f"{k}: {v}\n"
+    
+    return text

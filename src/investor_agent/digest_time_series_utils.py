@@ -3,6 +3,7 @@ import talib as ta
 from tabulate import tabulate
 import logging
 
+from src.investor_agent.calc_bullish import calculate_fibonacci_retracement
 from src.investor_agent.calc_time_series_analyze import calculate_time_series_analyze
 from src.investor_agent.calc_basic_statistics import calculate_basic_statistics
 from src.investor_agent.calc_risk_metrics import cal_risk
@@ -98,6 +99,7 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
     # Pattern recognition
     pattern = pattern_recognition(prepared_data)
 
+    fib = calculate_fibonacci_retracement(prepared_data)
 
     # Generate structured digest
 
@@ -117,6 +119,8 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 ===== PATTERN RECOGNITION =====
 {pattern}
 
+===== FIBONACCI RETRACEMENT =====
+{fib}
 
 ===== OHLCV SAMPLE =====
 {latest_data_sample}
