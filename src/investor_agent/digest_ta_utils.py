@@ -6,32 +6,32 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_tendency_of_last_20_days(series: np.ndarray) -> tuple[float, int, int]:
+def get_tendency_of_last_n_days(series: np.ndarray, n: int = 20) -> tuple[str, int, int]:
     """Determine the price tendency (trend) of the last 20 days.
     
     Args:
         series: numpy array of price data (typically closing prices)
         
     Returns:
-        tuple[float, int, int]: A tuple containing:
-            - slope (float): The slope of the linear regression line for the last 20 days.
+        tuple[str, int, int]: A tuple containing:
+            - slope (str): The slope of the linear regression line for the last 20 days.
             - up_count (int): The number of days the price moved upward in the last 20 days.
             - down_count (int): The number of days the price moved downward in the last 20 days.
     """
-    if len(series) < 20:
+    if len(series) < n:
         # Return NaN for slope and 0 for counts if insufficient data
         return "insufficient data", 0, 0
         
-    last_20 = series[-20:]
-    x = np.arange(len(last_20))
-    slope, _ = np.polyfit(x, last_20, 1)
+    last_n = series[-n:]
+    x = np.arange(len(last_n))
+    slope, _ = np.polyfit(x, last_n, 1)
     
     # Normalize slope by average price
-    avg_price = np.mean(last_20)
+    avg_price = np.mean(last_n)
     normalized_slope = slope / avg_price
     
     # Calculate up and down counts
-    price_changes = np.diff(last_20)
+    price_changes = np.diff(last_n)
     up_count = np.sum(price_changes > 0)
     down_count = np.sum(price_changes < 0)
     
@@ -69,7 +69,7 @@ def tech_indicators(time_series_data: pd.DataFrame) -> str:
     def get_tendency(data):
         if len(data) < 20:
             return np.nan, np.nan, np.nan
-        slope, up_count, down_count = get_tendency_of_last_20_days(data[-20:])
+        slope, up_count, down_count = get_tendency_of_last_n_days(data[-20:])
         return slope, up_count, down_count
     
     indicators = {

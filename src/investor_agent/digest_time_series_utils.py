@@ -1,12 +1,68 @@
 import pandas as pd
-import numpy as np
 import talib as ta
 from tabulate import tabulate
 import logging
 
+from src.investor_agent.calc_time_series_analyze import calculate_time_series_analyze
+from src.investor_agent.calc_basic_statistics import calculate_basic_statistics
+from src.investor_agent.calc_risk_metrics import cal_risk
 from src.investor_agent.digest_ta_utils import tech_indicators
 
 logger = logging.getLogger(__name__)
+
+def _prepare_time_series_data(time_series_data: pd.DataFrame) -> pd.DataFrame | str:
+    """Performs initial validation and data preparation."""
+    if time_series_data.empty:
+        return "No time series data available."
+
+    if time_series_data.shape[0] < 20:
+        logger.warning("Not enough rows in time series data.")
+        return tabulate(time_series_data, headers='keys', tablefmt="simple")
+
+    # Data preparation
+    if 'date' in time_series_data.columns:
+        time_series_data['date'] = pd.to_datetime(time_series_data['date'])
+        time_series_data = time_series_data.set_index('date').sort_index()
+
+    return time_series_data
+
+
+def get_latest_data_sample(time_series_data: pd.DataFrame, num_days: int = 20) -> pd.DataFrame:
+    """Extracts and formats a smartly sampled data sample with:
+    - High resolution for recent data (daily)
+    - Medium resolution for intermediate data (weekly)
+    - Low resolution for older data (monthly)
+    Total samples will be <= num_days.
+    """
+    if len(time_series_data) <= num_days:
+        # If data is shorter than requested window, return all
+        sampled_data = time_series_data.copy()
+    else:
+        # Hybrid sampling strategy
+        daily_window = num_days // 2  # 50% daily samples
+        weekly_window = num_days * 3 // 10  # 30% weekly samples
+        monthly_window = num_days - daily_window - weekly_window  # 20% monthly samples
+        
+        # Get daily samples from most recent period
+        daily_samples = time_series_data[-daily_window:].copy()
+        
+        # Get weekly samples from intermediate period
+        weekly_start = -daily_window - (weekly_window * 7)
+        weekly_samples = time_series_data[weekly_start:-daily_window:7].copy()
+        
+        # Get monthly samples from oldest period
+        monthly_start = -daily_window - (weekly_window * 7) - (monthly_window * 30)
+        monthly_samples = time_series_data[monthly_start:weekly_start:30].copy()
+        
+        # Combine samples
+        sampled_data = pd.concat([monthly_samples, weekly_samples, daily_samples])
+    
+    # Format output
+    sampled_data['Date'] = sampled_data.index.strftime('%Y-%m-%d')
+    sampled_data = sampled_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+    return tabulate(sampled_data, headers=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'],
+                   tablefmt="simple", showindex=False)
+
 
 def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
     """Generate a comprehensive quantitative digest for time series data.
@@ -18,114 +74,56 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
         str: Structured digest containing statistical analysis, technical indicators,
              risk metrics, and qualitative interpretations for LLM consumption.
     """
-    if time_series_data.empty:
-        return "No time series data available."
-    
-    if time_series_data.shape[0] < 20:
-        logger.warning("Not enough rows in time series data.") 
-        return tabulate(time_series_data, headers='keys', tablefmt="simple")
+    prepared_data = _prepare_time_series_data(time_series_data.copy()) # Use a copy to avoid modifying the original DataFrame
 
-    # Data preparation
-    if 'date' in time_series_data.columns:
-        time_series_data['date'] = pd.to_datetime(time_series_data['date'])
-        time_series_data = time_series_data.set_index('date').sort_index()
-    
-    
-    
+    if isinstance(prepared_data, str):
+        return prepared_data # Return error message if preparation failed
+
     # Basic statistics
-    stats = {
-        'Period': f"{time_series_data.index.min().strftime('%Y-%m-%d')} to {time_series_data.index.max().strftime('%Y-%m-%d')}",
-        'Trading Days': len(time_series_data),
-        'Close Price': {
-            'Min': np.min(time_series_data['Close']),
-            'Max': np.max(time_series_data['Close']),
-            'Mean': np.mean(time_series_data['Close']),
-            'Last': time_series_data['Close'].iloc[-1],
-            'Change': (time_series_data['Close'].iloc[-1] - time_series_data['Close'].iloc[0]) / time_series_data['Close'].iloc[0]  
-        },
-        'Volume': {
-            'Total': np.sum(time_series_data['Volume']),
-            'Avg': np.mean(time_series_data['Volume']),
-            'Max': np.max(time_series_data['Volume'])
-        }
-    }
+    stats = calculate_basic_statistics(prepared_data)
     
+    time_series_summary = calculate_time_series_analyze(prepared_data)
+
     # Technical indicators
-    indicators_details = tech_indicators(time_series_data)
+    indicators_details = tech_indicators(prepared_data)
 
-
+    
     # Risk-adjusted return metrics
-    
-    risk_metrics, sharpe_ratio, volatility = cal_risk(time_series_data)
-
-    
+    risk_metrics = cal_risk(prepared_data)
 
     # Latest 20 days sample
-    latest_20 = time_series_data[-20:]
-    latest_20['Date'] = latest_20.index.strftime('%Y-%m-%d')
-    latest_20 = latest_20[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+    latest_data_sample = get_latest_data_sample(prepared_data)
     
+
     # Pattern recognition
-    pattern = pattern_recognition(time_series_data)
+    pattern = pattern_recognition(prepared_data)
+
 
     # Generate structured digest
-    digest = f"""=== QUANTITATIVE TIME SERIES DIGEST ===
-    
-1. OVERVIEW
-{tabulate([[stats['Period'], stats['Trading Days']]], headers=['Period', 'Trading Days'], tablefmt='grid')}
 
-2. PRICE STATISTICS
-{tabulate([[stats['Close Price']['Min'], stats['Close Price']['Max'], stats['Close Price']['Mean'], stats['Close Price']['Last'], f"{stats['Close Price']['Change']*100:.2f}%"]], 
-          headers=['Min', 'Max', 'Mean', 'Last', 'Period Change'], tablefmt='simple', floatfmt=".2f")}
+    return f"""
+===== TIME SERIES DIGEST =====
+{stats}
 
-3. VOLUME ANALYSIS
-{tabulate([[stats['Volume']['Total'], stats['Volume']['Avg'], stats['Volume']['Max']]], 
-          headers=['Total Volume', 'Avg Volume', 'Max Volume'], tablefmt='simple')}
+===== TIME SERIES SUMMARY =====
+{time_series_summary}
 
-4. RISK METRICS
-{tabulate([[risk_metrics['Annualized Return'], risk_metrics['Annualized Volatility'], 
-            risk_metrics['Sharpe Ratio'], risk_metrics['Max Drawdown'], risk_metrics['Sortino Ratio']]], 
-          headers=['Annualized Return', 'Annualized Volatility', 'Annualized Sharpe', 'Max DD', 'Sortino'], tablefmt='simple')}
-
-5. TECHNICAL INDICATORS
+===== TECHNICAL INDICATORS =====
 {indicators_details}
 
-6. QUALITATIVE ASSESSMENT
-- Volatility is {'high' if volatility > 0.2 else 'moderate' if volatility > 0.1 else 'low'} compared to historical averages.
-- Risk-adjusted returns are {'attractive' if sharpe_ratio > 1 else 'moderate' if sharpe_ratio > 0.5 else 'poor'}.
+===== RISK METRICS =====
+{risk_metrics}
 
-7. PATTERN RECOGNITION
+===== PATTERN RECOGNITION =====
 {pattern}
 
-8. LATEST 20 DAYS OHLCV SAMPLE
 
-{tabulate(latest_20.values.tolist(), headers=latest_20.columns, tablefmt='simple', floatfmt=".2f")}
+===== OHLCV SAMPLE =====
+{latest_data_sample}
 
-=== END OF DIGEST ===
+===== END OF DIGEST =====
 """
-    return digest
 
-
-def cal_risk(time_series_data: pd.DataFrame) -> dict:
-    # Calculate daily returns and risk-free rate proxy (2% for simplicity)
-    time_series_data['daily_return'] = time_series_data['Close'].pct_change()
-    risk_free_rate = 0.02
-
-    # Risk-adjusted return metrics
-    annualized_return = np.mean(time_series_data['daily_return'].dropna()) * 252
-    volatility = np.std(time_series_data['daily_return'].dropna()) * np.sqrt(252)
-    sharpe_ratio = (annualized_return - risk_free_rate) / volatility if volatility != 0 else 0
-    
-    risk_metrics = {
-        'Annualized Return': f"{annualized_return*100:.2f}%",
-        'Annualized Volatility': f"{volatility*100:.2f}%",
-        'Sharpe Ratio': f"{sharpe_ratio:.2f}",
-        'Max Drawdown': f"{((time_series_data['Close'].pct_change().cumsum() - time_series_data['Close'].pct_change().cumsum().cummax()).min())*100:.2f}%",
-        'Sortino Ratio': f"{(annualized_return - risk_free_rate) / np.std(time_series_data[time_series_data['daily_return'] < 0]['daily_return'].dropna())*np.sqrt(252):.2f}" 
-            if len(time_series_data[time_series_data['daily_return'] < 0]) > 0 else 'N/A'
-    }
-
-    return risk_metrics, sharpe_ratio, volatility
 
 def pattern_recognition(time_series_data: pd.DataFrame) -> str:
     """Recognize common chart patterns in time series data.
@@ -189,4 +187,3 @@ def pattern_recognition(time_series_data: pd.DataFrame) -> str:
         return f"\n Patterns Detected in the last {period} days:\n" + \
                "\n".join(detected_patterns) + \
                "\n"
-

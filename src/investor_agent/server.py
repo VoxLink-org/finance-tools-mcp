@@ -49,7 +49,7 @@ def main():
 
     # Register calculation tools
     mcp.add_tool(calc_tools.calculate)
-    mcp.add_tool(calc_tools.calc_ta)
+    # mcp.add_tool(calc_tools.calc_ta)
 
     # Register macro tools
     mcp.add_tool(macro_tools.get_current_time)

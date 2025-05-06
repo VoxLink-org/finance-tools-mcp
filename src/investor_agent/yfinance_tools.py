@@ -159,9 +159,12 @@ def get_options(
 
 def get_price_history(
     ticker: str,
-    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "3mo"
+    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "6mo"
 ) -> str:
-    """Get historical price data digest for specified period. Usually get at least 3 months, 6 months or more."""
+    """Get historical price data digest for specified period. 
+    Usually get at least 3 months, 6 months or more.
+    It includes OCHLCV samples, Technical Indicators (by ta-lib) , Risk Metrics, and other quantitative analysis.
+    """
     history = yfinance_utils.get_price_history(ticker, period, raw=True)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"

@@ -3,7 +3,7 @@ import fredapi as fr
 import httpx
 import os
 import xml.etree.ElementTree as ET
-
+import requests_cache 
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,8 +14,12 @@ def get_fred_series(series_id):
 
     fred = fr.Fred(api_key=FRED_API_KEY)
 
-    series = fred.get_series(series_id)
-    return series.tail(10)
+    # Create a cached session with an expiration time
+    with requests_cache.CachedSession('fred_cache', expire_after=3600):
+        # Use the cached session for the FRED API request
+        series = fred.get_series(series_id)
+
+        return series.tail(10)
 
 def search_fred_series(query):
 
