@@ -16,6 +16,7 @@ def mode_instructions() -> str:
 - 你数学很不好，涉及计算的时候尽可能使用计算工具计算数学表达式
 - 技术分析也很重要
 - 使用时间工具可以知道现在是什么年月
+- 购买大类资产不必坚守10%仓位原则
 """
 
 def investment_principles() -> str:

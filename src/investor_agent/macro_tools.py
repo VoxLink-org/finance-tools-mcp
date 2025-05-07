@@ -24,9 +24,15 @@ def cnbc_news_feed():
     """Get the latest breaking world news from CNBC, BBC, and SCMP. Useful to have an overview for the day. Include the Fed rate prediction from Fed watch. """
     news = macro_api_utils.breaking_news_feed()
     fred_watch_news = {
-        "title": "FED Watch news: Our Fed rate monitor calculator is based on CME Group 30-Day Fed Fund futures prices",
+        "title": "Real Time Fed Rate Monitor: The most precise fed rate monitor based on CME Group 30-Day Fed Fund futures prices",
         "description": f"Fed rate prediction:\n {macro_api_utils.cme_fedwatch_tool()}",
         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     news.append(fred_watch_news)
     return news
+
+def social_media_feed():
+    """Get most discussed stocks and investments opinions from social media. Useful to know what investors are talking about. """
+    news = macro_api_utils.reddit_stock_post()
+    return news
+

@@ -2,8 +2,8 @@ from . import yfinance_utils
 import talib as ta
 
 def get_market_rsi():
-    spy_price = yfinance_utils.get_price_history('SPY', period='1mo', raw=True)
-    qqq_price = yfinance_utils.get_price_history('QQQ', period='1mo', raw=True)
+    spy_price = yfinance_utils.get_price_history('SPY', period='3mo', raw=True)
+    qqq_price = yfinance_utils.get_price_history('QQQ', period='3mo', raw=True)
 
     spy_rsi = ta.RSI(spy_price['Close'], timeperiod=14)
     qqq_rsi = ta.RSI(qqq_price['Close'], timeperiod=14)
@@ -20,16 +20,44 @@ def get_market_rsi():
             return "overbought"
         return "neutral"
 
-    # Simple divergence detection (last 5 days)
-    def check_divergence(prices, rsi_values):
-        last_prices = prices[-5:]
-        last_rsi = rsi_values[-5:]
+    # Balanced divergence detection with relaxed thresholds
+    def check_divergence(prices, rsi_values, window=14):
+        if len(prices) < window or len(rsi_values) < window:
+            return "no_clear_divergence"
+            
+        # Find significant turning points
+        def find_turns(series):
+            turns = []
+            for i in range(1, len(series)-1):
+                # Less strict turning point detection
+                if (series[i] <= series[i-1] and series[i] <= series[i+1]) or \
+                   (series[i] >= series[i-1] and series[i] >= series[i+1]):
+                    turns.append((i, series[i]))
+            return turns
+            
+        price_turns = find_turns(prices[-window:])
+        rsi_turns = find_turns(rsi_values[-window:])
         
-        price_trend = "up" if last_prices[-1] > last_prices[0] else "down"
-        rsi_trend = "up" if last_rsi[-1] > last_rsi[0] else "down"
+        # Need at least 2 turns in each series
+        if len(price_turns) < 2 or len(rsi_turns) < 2:
+            return "no_clear_divergence"
+            
+        # Compare latest two turns
+        price1, price2 = price_turns[-2:]
+        rsi1, rsi2 = rsi_turns[-2:]
         
-        if price_trend != rsi_trend:
-            return f"potential_{'bearish' if price_trend == 'up' else 'bullish'}_divergence"
+        # Check for opposing trends with relaxed thresholds
+        price_dir = "up" if price2[1] > price1[1] else "down"
+        rsi_dir = "up" if rsi2[1] > rsi1[1] else "down"
+        
+        if price_dir != rsi_dir:
+            # Relaxed thresholds: 0.5% price move and 1% RSI move
+            price_move = abs(price2[1] - price1[1]) / ((price1[1] + price2[1])/2)
+            rsi_move = abs(rsi2[1] - rsi1[1]) / ((rsi1[1] + rsi2[1])/2)
+            
+            if price_move > 0.005 and rsi_move > 0.01:
+                return f"potential_{'bearish' if price_dir == 'up' else 'bullish'}_divergence"
+                
         return "no_clear_divergence"
 
     spy_condition = classify_rsi(current_spy_rsi)

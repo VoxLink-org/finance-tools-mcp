@@ -182,10 +182,51 @@ def cme_fedwatch_tool():
             })
 
         if isinstance(results, (dict, list)):
-            return json.dumps(results, separators=(',', ':'))
+            return json.dumps(results, indent=2)
         return str(results)
     
     except Exception as e:
         logger.error(f"Error retrieving fed watch: {e}")
 
 
+def reddit_stock_post():
+    
+    
+
+    def get_rss(url):
+        results = []
+        try:
+            response = httpx.get(url)
+            root = bs4.BeautifulSoup(response.text, 'xml')
+            entries = root.find_all('entry')
+            for entry in entries:
+                content_html = entry.content.text if entry.content else ''
+                content_text = bs4.BeautifulSoup(content_html, 'html.parser').get_text()
+                content_words = content_text.split()
+                if content_text.find('This post contains content not supported on old Reddit') != -1:
+                    continue
+                if len(content_words) < 20:
+                    continue
+
+                results.append({
+                    'title': entry.title.text if entry.title else '',
+                    'content': ' '.join(content_words[:100] + ['...']) if len(content_words) > 100 else content_text,
+                    'updated': entry.updated.text if entry.updated else ''
+                })
+            
+            
+        except Exception as e:
+            logger.error(f"Error retrieving reddit stock post: {e}")
+        return results
+
+    url1 = 'https://www.reddit.com/r/stocks/.rss'
+
+    url2 = "https://www.reddit.com/r/wallstreetbets/.rss"
+
+    r1 = get_rss(url1)
+    r2 = get_rss(url2)
+
+    results = random.choices(r1, k=14) + random.choices(r2, k=7)
+
+    random.shuffle(results)
+    return results

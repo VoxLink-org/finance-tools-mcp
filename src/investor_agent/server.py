@@ -56,6 +56,7 @@ def main():
     mcp.add_tool(macro_tools.get_fred_series)
     mcp.add_tool(macro_tools.search_fred_series)
     mcp.add_tool(macro_tools.cnbc_news_feed)
+    mcp.add_tool(macro_tools.social_media_feed)
 
     # Register prompts
     mcp.prompt()(prompts.chacteristics)

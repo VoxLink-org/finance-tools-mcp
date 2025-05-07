@@ -3,7 +3,7 @@ import talib as ta
 from tabulate import tabulate
 import logging
 
-from src.investor_agent.calc_bullish import calculate_fibonacci_retracement
+from src.investor_agent.calc_bullish import cal_bullish_divergence, calculate_fibonacci_retracement
 from src.investor_agent.calc_time_series_analyze import calculate_time_series_analyze
 from src.investor_agent.calc_basic_statistics import calculate_basic_statistics
 from src.investor_agent.calc_risk_metrics import cal_risk
@@ -95,6 +95,7 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
     # Latest 20 days sample
     latest_data_sample = get_latest_data_sample(prepared_data)
     
+    # div = cal_bullish_divergence(prepared_data)
 
     # Pattern recognition
     pattern = pattern_recognition(prepared_data)
