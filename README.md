@@ -3,42 +3,64 @@
 
 ## Overview
 
-The **finance-tools-mcp** , modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), is a Model Context Protocol (MCP) server that provides comprehensive financial insights and analysis to Large Language Models. It leverages real-time market data, news, and advanced analytics to help users obtain:
-
-- Detailed ticker reports including company overview, news, key metrics, performance, dates, analyst recommendations, and upgrades/downgrades.
-- Options data highlighting high open interest.
-- Historical price trends for stocks.
-- Essential financial statements (income, balance sheet, cash flow) formatted in millions USD.
-- Up-to-date institutional ownership and mutual fund holdings.
-- Current and historical CNN Fear & Greed Index data and trend analysis.
-- Prompts related to core investment principles and portfolio construction strategies.
-- Earnings history and insider trading activity.
-- Breaking world news from CNBC.
-- FRED series search results.
-- Technical indicators using ta-lib-python.
+The **finance-tools-mcp** is a Model Context Protocol (MCP) server designed to provide comprehensive financial insights and analysis capabilities to Large Language Models (LLMs). Modified from [investor-agent](https://github.com/ferdousbhai/investor-agent), it integrates with various data sources and analytical libraries to offer a suite of tools for detailed financial research and analysis.
 
 <a href="https://glama.ai/mcp/servers/@VoxLink-org/finance-tools-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@VoxLink-org/finance-tools-mcp/badge" alt="Finance Tools MCP server" />
 </a>
 
-The server integrates with [yfinance](https://pypi.org/project/yfinance/) for market data retrieval and fetches Fear & Greed data from CNN.
 
-It also includes tools for calculating mathematical expressions and technical indicators using [ta-lib-python](https://pypi.org/project/ta-lib-python/).
+## Tools Offered
 
-And Macro economic indicators using [fredapi](https://pypi.org/project/fredapi/).
+The server exposes a variety of tools via the MCP, allowing connected clients (like LLMs) to access specific financial data and perform analyses:
 
-And breaking world news from [cnbc.com](https://www.cnbc.com/).
+*   **Ticker Data Tools:**
+    *   `get_ticker_data`: Provides a comprehensive report for a given ticker, including overview, news, key metrics, performance, dates, analyst recommendations, and upgrades/downgrades.
+    *   `get_options`: Retrieves options data with the highest open interest for a ticker, with filtering options for date range, strike price, and option type (Calls/Puts).
+    *   `get_price_history`: Fetches historical price data digest for a specified period, including OHLCV samples, Technical Indicators, Risk Metrics, and other quantitative analysis.
+    *   `get_financial_statements`: Accesses financial statements (income, balance, cash flow) for a ticker, available quarterly or annually.
+    *   `get_institutional_holders`: Lists major institutional and mutual fund holders for a ticker.
+    *   `get_earnings_history`: Provides earnings history with estimates and surprises for a ticker.
+    *   `get_insider_trades`: Retrieves recent insider trading activity for a ticker.
+    *   `get_ticker_news_tool`: Fetches the latest Yahoo Finance news for a specific ticker.
 
-Make sure to also enable web search functionality if you would like to incoporate latest news in your analysis.
+*   **Fear & Greed Index Tools:**
+    *   `get_current_fng_tool`: Gets the current CNN Fear & Greed Index score and rating.
+    *   `get_historical_fng_tool`: Retrieves historical CNN Fear & Greed Index data for a specified number of days.
+    *   `analyze_fng_trend`: Analyzes trends in the CNN Fear & Greed Index over a specified period.
+
+*   **Calculation Tools:**
+    *   `calculate`: Evaluates mathematical expressions using Python's math syntax and NumPy.
+
+*   **Macro Data Tools:**
+    *   `get_current_time`: Provides the current time.
+    *   `get_fred_series`: Retrieves data for a specific FRED series ID.
+    *   `search_fred_series`: Searches for popular FRED series by keyword.
+    *   `cnbc_news_feed`: Fetches the latest breaking world news from CNBC, BBC, and SCMP.
+
+## Time Series Data Processing and Optimization
+
+The server utilizes `yfinance` to retrieve historical price data (OHLCV - Open, High, Low, Close, Volume) for tickers. This raw data undergoes significant processing and analysis to provide valuable insights, particularly optimized for consumption by LLMs.
+
+Key aspects of the time series data handling include:
+
+*   **Comprehensive Analysis:** The data is analyzed using libraries like `ta-lib-python` to calculate a wide range of technical indicators. Additionally, custom functions compute basic statistics, risk metrics, recognize common chart patterns, and calculate Fibonacci retracement levels.
+*   **Structured Digest:** The results of this analysis are compiled into a structured digest format (`generate_time_series_digest_for_LLM`) that is easy for LLMs to parse and understand, including sections for statistics, summary, technical indicators, risk metrics, patterns, Fibonacci levels, and a data sample.
+*   **Smart Sampling for LLMs:** To provide LLMs with a representative view of historical data without overwhelming the context window, a "smart sampling" strategy is employed (`get_latest_data_sample`). This method samples the data with varying resolutions:
+    *   **High Resolution:** Recent data points are included daily.
+    *   **Medium Resolution:** Intermediate data points are sampled weekly.
+    *   **Low Resolution:** Older data points are sampled monthly.
+    This hybrid approach ensures that the LLM receives detailed information about recent price movements while still having context about longer-term trends, all within a manageable number of data points.
+
+This optimized processing and presentation of time series data allows LLMs to quickly grasp key trends, indicators, and patterns, facilitating more informed financial analysis.
 
 ## Sample Report
 ![alt text](image.png)
 
-
 ## Prerequisites
 
-- **Python:** 3.10 or higher
-- **Package Manager:** [uv](https://docs.astral.sh/uv/)
+*   **Python:** 3.10 or higher
+*   **Package Manager:** [uv](https://docs.astral.sh/uv/)
 
 ## Installation
 
@@ -103,15 +125,15 @@ npx @modelcontextprotocol/inspector uv --directory  ./ run finance-tools-mcp
 
 For log monitoring, check the following directories:
 
-- macOS: `~/Library/Logs/Claude/mcp*.log`
-- Windows: `%APPDATA%\Claude\logs\mcp*.log`
+*   macOS: `~/Library/Logs/Claude/mcp*.log`
+*   Windows: `%APPDATA%\Claude\logs\mcp*.log`
 
 ## Development
 
 For local development and testing:
 
-1. Use the MCP inspector as described in the [Debugging](#debugging) section.
-2. Test using Claude Desktop with this configuration:
+1.  Use the MCP inspector as described in the [Debugging](#debugging) section.
+2.  Test using Claude Desktop with this configuration:
 
 ```json
 {
@@ -134,9 +156,10 @@ This MCP server is licensed under the MIT License. See the [LICENSE](LICENSE) fi
 - [pdd_analysis_20250503.md](reports/pdd_analysis_20250503.md)
 - [meli_se_shop_comparison_20250504.md](reports/meli_se_shop_comparison_20250504.md)
 
-
 ## Todo
 - [ ] Add supporting levels and resistance levels for stocks
-- [ ] Add Fibonacci retracement levels for stocks
+- [x] Add Fibonacci retracement levels for stocks
 - [ ] Add moving average confluence levels for stocks
-- [-] Add option model for prediction 
+- [ ] Add option model for prediction
+- [ ] Add predictive model by using finance sheets and other features
+ 
