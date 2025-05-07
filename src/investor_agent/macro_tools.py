@@ -21,5 +21,12 @@ def search_fred_series(query):
     return macro_api_utils.search_fred_series(query)
 
 def cnbc_news_feed():
-    """Get the latest breaking world news from CNBC, BBC, and SCMP. Useful to have an overview for the day."""
-    return macro_api_utils.breaking_news_feed()
+    """Get the latest breaking world news from CNBC, BBC, and SCMP. Useful to have an overview for the day. Include the Fed rate prediction from Fed watch. """
+    news = macro_api_utils.breaking_news_feed()
+    fred_watch_news = {
+        "title": "FED Watch news: Our Fed rate monitor calculator is based on CME Group 30-Day Fed Fund futures prices",
+        "description": f"Fed rate prediction:\n {macro_api_utils.cme_fedwatch_tool()}",
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    news.append(fred_watch_news)
+    return news

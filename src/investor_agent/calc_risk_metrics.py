@@ -6,11 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-def cal_risk(time_series_data: pd.DataFrame) -> dict:
-    # Calculate daily returns and risk-free rate proxy (2% for simplicity)
-    time_series_data['daily_return'] = time_series_data['Close'].pct_change()
-    # Fetch the latest 10-year treasury yield from FRED (DGS10)
+def get_risk_free_rate():
+        # Fetch the latest 10-year treasury yield from FRED (DGS10)
     # The data is returned as a string representation of a pandas Series
     risk_free_rate = 0.02
     try:
@@ -24,6 +21,13 @@ def cal_risk(time_series_data: pd.DataFrame) -> dict:
         risk_free_rate = 0.02
         logger.error("Failed to fetch or parse FRED data. Using default risk-free rate.")
 
+    return risk_free_rate
+
+def cal_risk(time_series_data: pd.DataFrame) -> dict:
+    # Calculate daily returns and risk-free rate proxy (2% for simplicity)
+    time_series_data['daily_return'] = time_series_data['Close'].pct_change()
+
+    risk_free_rate = get_risk_free_rate()
     # Risk-adjusted return metrics
     annualized_return = np.mean(time_series_data['daily_return'].dropna()) * 252
     volatility = np.std(time_series_data['daily_return'].dropna()) * np.sqrt(252)

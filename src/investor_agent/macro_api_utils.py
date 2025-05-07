@@ -1,9 +1,12 @@
+import json
 import random
 import fredapi as fr
 import httpx
 import os
 import xml.etree.ElementTree as ET
 import requests_cache 
+import bs4
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -134,3 +137,55 @@ def breaking_news_feed():
 
 
     return news_items
+
+def cme_fedwatch_tool():
+    url = 'https://www.investing.com/central-banks/fed-rate-monitor'
+
+    try:
+        response = httpx.get(url)
+        root = bs4.BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract first 2 Fed rate decision cards
+        cards = root.find_all('div', class_='cardWrapper')[:2]
+        results = []
+        
+        for card in cards:
+            # Extract meeting date from fedRateDate
+            meeting_date = card.find('div', class_='fedRateDate').get_text(strip=True)
+            
+            # Extract detailed meeting time and future price from infoFed
+            info_fed = card.find('div', class_='infoFed')
+            meeting_time = info_fed.find('i').get_text(strip=True)
+            future_price = info_fed.find_all('i')[1].get_text(strip=True)
+            
+            # Extract probability table data
+            probabilities = []
+            table = card.find('table', class_='fedRateTbl')
+            for row in table.find_all('tr')[1:]:  # Skip header row
+                cells = row.find_all('td')
+                probabilities.append({
+                    'target_rate': cells[0].get_text(strip=True),
+                    'current_prob': cells[1].get_text(strip=True),
+                    # 'prev_day_prob': cells[2].get_text(strip=True),
+                    # 'prev_week_prob': cells[3].get_text(strip=True)
+                })
+            
+            # Extract update time
+            update_time = card.find('div', class_='fedUpdate').get_text(strip=True)
+            
+            results.append({
+                # 'meeting_date': meeting_date,
+                'meeting_time': meeting_time,
+                # 'future_price': future_price,
+                'probabilities': probabilities,
+                # 'update_time': update_time
+            })
+
+        if isinstance(results, (dict, list)):
+            return json.dumps(results, separators=(',', ':'))
+        return str(results)
+    
+    except Exception as e:
+        logger.error(f"Error retrieving fed watch: {e}")
+
+

@@ -3,6 +3,7 @@ from datetime import datetime
 
 
 from . import cnn_fng_utils
+from . import market_rsi_util
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +13,14 @@ logger = logging.getLogger(__name__)
 
 # Resource to get current Fear & Greed Index
 async def get_current_fng() -> str:
-    """Get the current CNN Fear & Greed Index as a resource."""
-    logger.info("Fetching current CNN Fear & Greed Index resource")
+    """Get the current CNN Fear & Greed Index as a resource. As well as the market RSI."""
+    logger.info("Fetching current CNN Fear & Greed Index resource and market RSI")
     data = await cnn_fng_utils.fetch_fng_data()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
+
+    market_rsi = market_rsi_util.get_market_rsi()
 
     try:
         fear_and_greed = data.get("fear_and_greed", {})
@@ -34,9 +37,10 @@ async def get_current_fng() -> str:
 
         # Construct output with proper formatting
         result = (
-            f"CNN Fear & Greed Index (as of {date_str}):\\n"  # Escaped newline
-            f"Score: {current_score}\\n"  # Escaped newline
-            f"Rating: {current_rating}"
+            f"CNN Fear & Greed Index (as of {date_str}):\n"  # Escaped newline
+            f"Score: {current_score}\n"  # Escaped newline
+            f"Rating: {current_rating}\n"
+            f"{market_rsi}"
         )
         return result
     except Exception as e:
@@ -77,13 +81,14 @@ async def get_historical_fng() -> str:
 # Tool to get current Fear & Greed Index
 async def get_current_fng_tool() -> str:
     """
-    Get the current CNN Fear & Greed Index.
+    Get the current CNN Fear & Greed Index, as well as the market RSI.
 
     Returns:
-        str: The current Fear & Greed Index with score and rating.
+        str: The current Fear & Greed Index & market RSI, with score and rating.
     """
     logger.info("Fetching current CNN Fear & Greed Index tool")
     data = await cnn_fng_utils.fetch_fng_data()
+    market_rsi = market_rsi_util.get_market_rsi()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -105,10 +110,11 @@ async def get_current_fng_tool() -> str:
 
         # Construct output with proper formatting
         result = (
-            f"CNN Fear & Greed Index (as of {date_str}):\\n"  # Escaped newline
-            f"Score: {current_score}\\n"  # Escaped newline
-            f"CNN Rating: {current_rating}\\n"  # Escaped newline
-            f"Classification: {score_classification}"
+            f"CNN Fear & Greed Index (as of {date_str}):\n"  # Escaped newline
+            f"Score: {current_score}\n"  # Escaped newline
+            f"CNN Rating: {current_rating}\n"  # Escaped newline
+            f"Classification: {score_classification}\n"
+            f"{market_rsi}"
         )
         return result
     except Exception as e:
