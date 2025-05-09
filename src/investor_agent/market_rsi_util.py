@@ -69,3 +69,46 @@ def get_market_rsi():
         f"SPY RSI: {current_spy_rsi:.1f} ({spy_condition}), {spy_divergence}\n"
         f"QQQ RSI: {current_qqq_rsi:.1f} ({qqq_condition}), {qqq_divergence}"
     )
+
+def get_market_vix():
+    """Get comprehensive VIX analysis including trend and sentiment interpretation.
+    Returns structured analysis for LLM consumption."""
+    vix = yfinance_utils.get_price_history('^VIX', period='1mo', raw=True)
+    close_prices = vix['Close']
+    
+    current = close_prices[-1]
+    week_ago = close_prices[-5]
+    month_high = close_prices.max()
+    month_low = close_prices.min()
+    
+    # Determine trend direction
+    if current > week_ago * 1.1:
+        trend = "rising sharply"
+    elif current > week_ago * 1.05:
+        trend = "rising"
+    elif current < week_ago * 0.9:
+        trend = "falling sharply"
+    elif current < week_ago * 0.95:
+        trend = "falling"
+    else:
+        trend = "stable"
+    
+    # Interpret sentiment based on VIX level
+    if current > 30:
+        sentiment = "extreme fear"
+    elif current > 25:
+        sentiment = "high fear" 
+    elif current > 20:
+        sentiment = "moderate fear"
+    elif current > 12:  # More aligned with historical mean
+        sentiment = "neutral"
+    else:
+        sentiment = "complacency"
+    
+    return (
+        f"VIX Analysis:\n"
+        f"- Current: {current:.2f}\n"
+        f"- Trend: {trend} (from {week_ago:.2f} a week ago)\n"
+        f"- Monthly Range:  {month_low:.2f} ~ {month_high:.2f}\n"
+        f"- Market Sentiment: {sentiment}"
+    )

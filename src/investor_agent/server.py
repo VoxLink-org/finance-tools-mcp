@@ -9,6 +9,7 @@ import argparse
 from mcp.server.fastmcp import FastMCP
 
 # Import the new tool and prompt modules
+from . import option_analyze
 from . import yfinance_tools
 from . import cnn_fng_tools
 from . import calc_tools
@@ -31,13 +32,16 @@ def main():
 
     # Register yfinance tools
     mcp.add_tool(yfinance_tools.get_ticker_data)
-    mcp.add_tool(yfinance_tools.get_options)
+    # mcp.add_tool(yfinance_tools.get_options)
     mcp.add_tool(yfinance_tools.get_price_history)
     mcp.add_tool(yfinance_tools.get_financial_statements)
     mcp.add_tool(yfinance_tools.get_institutional_holders)
     mcp.add_tool(yfinance_tools.get_earnings_history)
     mcp.add_tool(yfinance_tools.get_insider_trades)
     mcp.add_tool(yfinance_tools.get_ticker_news_tool)
+
+    # Register Option analyze
+    mcp.add_tool(option_analyze.analyze_options_v2)
 
     # Register CNN Fear & Greed resources and tools
     mcp.resource("cnn://fng/current")(cnn_fng_tools.get_current_fng)

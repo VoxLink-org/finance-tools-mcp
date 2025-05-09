@@ -89,6 +89,7 @@ async def get_current_fng_tool() -> str:
     logger.info("Fetching current CNN Fear & Greed Index tool")
     data = await cnn_fng_utils.fetch_fng_data()
     market_rsi = market_rsi_util.get_market_rsi()
+    market_vix = market_rsi_util.get_market_vix()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -114,7 +115,8 @@ async def get_current_fng_tool() -> str:
             f"Score: {current_score}\n"  # Escaped newline
             f"CNN Rating: {current_rating}\n"  # Escaped newline
             f"Classification: {score_classification}\n"
-            f"{market_rsi}"
+            f"{market_rsi}\n"
+            f"{market_vix}"
         )
         return result
     except Exception as e:

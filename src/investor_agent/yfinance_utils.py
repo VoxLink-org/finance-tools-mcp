@@ -294,3 +294,11 @@ def get_ticker_news(ticker: str) -> list | None:
     except Exception as e:
         logger.error(f"Error retrieving ticker news for {ticker}: {e}")
         return None
+    
+
+def get_current_price(ticker: str) -> float | None:
+    try:
+        return yf.Ticker(ticker, session=session).info['regularMarketPrice']
+    except Exception as e:
+        logger.error(f"Error retrieving current price for {ticker}: {e}")
+        return None

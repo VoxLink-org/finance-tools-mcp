@@ -2,9 +2,11 @@
 .env
 .venv
 **/__pycache__
-yfinance.cache
 dist
 *.ipynb
 .cursorrules
 example.py
 .roo/mcp.json
+/*/.cache/*
+src/investor_agent/.cache/
+yfinance.cache
