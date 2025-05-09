@@ -18,7 +18,7 @@ def get_fred_series(series_id):
     fred = fr.Fred(api_key=FRED_API_KEY)
 
     # Create a cached session with an expiration time
-    with requests_cache.CachedSession('fred_cache', expire_after=3600):
+    with requests_cache.CachedSession('fred_cache', backend=requests_cache.SQLiteCache(':memory:'), expire_after=3600):
         # Use the cached session for the FRED API request
         series = fred.get_series(series_id)
 
