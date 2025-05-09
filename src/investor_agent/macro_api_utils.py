@@ -181,9 +181,14 @@ def cme_fedwatch_tool():
                 # 'update_time': update_time
             })
 
+        current_fed_rate = ' '.join([td.get_text(strip=True) for td in root.find_all('tr', class_='first')[0].find_all('td')])
+
         if isinstance(results, (dict, list)):
-            return json.dumps(results, indent=2)
-        return str(results)
+            return json.dumps({
+            "current_fed_rate": current_fed_rate,
+            "predict":    results
+            }, indent=2)
+        return f"predict: {str(results)} current_fed_rate: {current_fed_rate}"
     
     except Exception as e:
         logger.error(f"Error retrieving fed watch: {e}")
