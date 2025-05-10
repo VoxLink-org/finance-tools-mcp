@@ -200,8 +200,18 @@ def analyze_options_v2(ticker_symbol: str) -> str:
     # 1. Fetch Data
     current_options_df = get_options(ticker_symbol)
     historical_options_df = get_historical_options_by_ticker(ticker_symbol)
-
-    print(current_options_df)
+    
+    # Merge current and historical data, keeping most recent entries
+    combined_df = pd.concat([current_options_df, historical_options_df])
+    
+    # Create unique key and drop duplicates (keep most recent lastTradeDate)
+    combined_df['composite_key'] = combined_df['lastTradeDate'].astype(str) + combined_df['contractSymbol']
+    combined_df = combined_df.sort_values('lastTradeDate', ascending=False)
+    combined_df = combined_df.drop_duplicates('composite_key')
+    
+    # Filter out contracts with no open interest
+    combined_df = combined_df[combined_df['openInterest'] > 0]
+    
 
     if not isinstance(current_options_df, pd.DataFrame) or current_options_df.empty:
         return f"Error: Could not retrieve current options data for {ticker_symbol}."
