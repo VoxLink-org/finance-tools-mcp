@@ -3,7 +3,7 @@ from typing import Literal, Optional
 import logging
 import pandas as pd
 
-from ..services import yfinance_service as yfinance_utils
+from packages.investor_agent_lib.services import yfinance_service
 
 
 def contract_formatter(contract_symbol: str) -> dict[str, str]:
@@ -103,7 +103,7 @@ def get_raw_options(
     option_type: Literal["C", "P"] | None = None,
 ) -> pd.DataFrame:
     """Get options with bucketed selection. Dates: YYYY-MM-DD. Type: C=calls, P=puts."""
-    underlyingPrice = yfinance_utils.get_current_price(ticker_symbol)
+    underlyingPrice = yfinance_service.get_current_price(ticker_symbol)
     
     logger = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ def get_raw_options(
 
 
     try:
-        df, error = yfinance_utils.get_filtered_options(
+        df, error = yfinance_service.get_filtered_options(
             ticker_symbol, start_date, end_date, strike_lower, strike_upper, option_type
         )
 
