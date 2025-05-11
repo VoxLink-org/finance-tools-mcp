@@ -1,22 +1,21 @@
 import sqlite3
-from datetime import datetime
-from typing import Literal, Optional
-import numpy as np
 
 import pandas as pd
 from prefect import task, flow, get_run_logger
 
-import packages.investor_agent_lib.option_indicator_utils as option_indicator_utils
+from packages.investor_agent_lib.options import option_indicators  
 
-db_path = "data/options_indicator.db"
+from config.paths import DATA_DIR
+
+db_path = DATA_DIR / "options_indicator.db"
 table_name = "options_indicator"
 
 @task(name="get-option-indicator-data")
 def get_options_indicator_task(
     ticker: str
 )->pd.DataFrame:
-    basic_indicators = option_indicator_utils.calculate_indicators(ticker)
-    greeks = option_indicator_utils.calculate_greeks(ticker)
+    basic_indicators = option_indicators.calculate_indicators(ticker)
+    greeks = option_indicators.calculate_greeks(ticker)
     # Merge two dictionaries and convert to DataFrame
     merged_dict = {**basic_indicators, **greeks}
     return pd.DataFrame([{k: merged_dict[k] for k in sorted(merged_dict)}])

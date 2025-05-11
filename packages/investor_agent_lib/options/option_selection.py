@@ -3,7 +3,7 @@ from typing import Literal, Optional
 import logging
 import pandas as pd
 
-import yfinance_utils
+from ..services import yfinance_service as yfinance_utils
 
 
 def contract_formatter(contract_symbol: str) -> dict[str, str]:

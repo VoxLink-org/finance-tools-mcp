@@ -5,8 +5,8 @@ from typing import Literal
 import pandas as pd
 from tabulate import tabulate
 
-from . import yfinance_utils
-from . import digest_time_series_utils
+from packages.investor_agent_lib.services import yfinance_service 
+from packages.investor_agent_lib.digests import time_series_digest
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def get_ticker_data(ticker: str) -> str:
     """Get comprehensive report for ticker: overview, news, metrics, performance, dates, analyst recommendations, and upgrades/downgrades."""
     try:
-        info = yfinance_utils.get_ticker_info(ticker)
+        info = yfinance_service.get_ticker_info(ticker)
         if not info:
             return f"No information available for {ticker}"
 
@@ -68,7 +68,7 @@ def get_ticker_data(ticker: str) -> str:
         sections.extend(["\nANALYST COVERAGE", tabulate(analyst, tablefmt="plain")])
 
         # Calendar dates
-        if calendar := yfinance_utils.get_calendar(ticker):
+        if calendar := yfinance_service.get_calendar(ticker):
             dates_data = []
             for key, value in calendar.items():
                 if isinstance(value, datetime):
@@ -82,7 +82,7 @@ def get_ticker_data(ticker: str) -> str:
                 sections.extend(["\nIMPORTANT DATES", tabulate(dates_data, headers=["Event", "Date"], tablefmt="plain")])
 
         # Recent recommendations
-        if (recommendations := yfinance_utils.get_recommendations(ticker)) is not None and not recommendations.empty:
+        if (recommendations := yfinance_service.get_recommendations(ticker)) is not None and not recommendations.empty:
             rec_data = [
                 [
                     row['period'],  # Use the period column directly
@@ -102,7 +102,7 @@ def get_ticker_data(ticker: str) -> str:
                                       tablefmt="plain")])
 
         # Recent upgrades/downgrades
-        if (upgrades := yfinance_utils.get_upgrades_downgrades(ticker)) is not None and not upgrades.empty:
+        if (upgrades := yfinance_service.get_upgrades_downgrades(ticker)) is not None and not upgrades.empty:
             upg_data = [
                 [
                     pd.to_datetime(row.name).strftime('%Y-%m-%d'),
@@ -133,7 +133,7 @@ def get_options(
 ) -> str:
     """Get options with highest open interest. Dates: YYYY-MM-DD. Type: C=calls, P=puts."""
     try:
-        df, error = yfinance_utils.get_filtered_options(
+        df, error = yfinance_service.get_filtered_options(
             ticker_symbol, start_date, end_date, strike_lower, strike_upper, option_type
         )
         if error:
@@ -165,13 +165,13 @@ def get_price_history(
     Usually get at least 3 months, 6 months or more.
     It includes OCHLCV samples, Technical Indicators (by ta-lib) , Risk Metrics, and other quantitative analysis.
     """
-    history = yfinance_utils.get_price_history(ticker, period, raw=True)
+    history = yfinance_service.get_price_history(ticker, period, raw=True)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"
 
     digest_mode = True
     if digest_mode:
-        return digest_time_series_utils.generate_time_series_digest_for_LLM(history)
+        return time_series_digest.generate_time_series_digest_for_LLM(history)
 
 
     price_data = [
@@ -195,7 +195,7 @@ def get_financial_statements(
     frequency: Literal["quarterly", "annual"] = "quarterly",
 ) -> str:
     """Get financial statements. Types: income, balance, cash. Frequency: quarterly, annual."""
-    data = yfinance_utils.get_financial_statements(ticker, statement_type, frequency)
+    data = yfinance_service.get_financial_statements(ticker, statement_type, frequency)
 
     if data is None or data.empty:
         return f"No {statement_type} statement data found for {ticker}"
@@ -218,7 +218,7 @@ def get_financial_statements(
 
 def get_institutional_holders(ticker: str, top_n: int = 20) -> str:
     """Get major institutional and mutual fund holders."""
-    inst_holders, fund_holders = yfinance_utils.get_institutional_holders(ticker)
+    inst_holders, fund_holders = yfinance_service.get_institutional_holders(ticker)
 
     if (inst_holders is None or inst_holders.empty) and (fund_holders is None or fund_holders.empty):
         return f"No institutional holder data found for {ticker}"
@@ -251,7 +251,7 @@ def get_institutional_holders(ticker: str, top_n: int = 20) -> str:
 
 def get_earnings_history(ticker: str) -> str:
     """Get earnings history with estimates and surprises."""
-    earnings_history = yfinance_utils.get_earnings_history(ticker)
+    earnings_history = yfinance_service.get_earnings_history(ticker)
 
     if earnings_history is None or earnings_history.empty:
         return f"No earnings history data found for {ticker}"
@@ -272,7 +272,7 @@ def get_earnings_history(ticker: str) -> str:
 
 def get_insider_trades(ticker: str) -> str:
     """Get recent insider trading activity."""
-    trades = yfinance_utils.get_insider_trades(ticker)
+    trades = yfinance_service.get_insider_trades(ticker)
 
     if trades is None or trades.empty:
         return f"No insider trading data found for {ticker}"
@@ -294,7 +294,7 @@ def get_insider_trades(ticker: str) -> str:
 
 def get_ticker_news_tool(ticker: str) -> str:
     """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""
-    news = yfinance_utils.get_ticker_news(ticker)
+    news = yfinance_service.get_ticker_news(ticker)
 
     if news is None or len(news) == 0:
         return f"No news found for {ticker}"

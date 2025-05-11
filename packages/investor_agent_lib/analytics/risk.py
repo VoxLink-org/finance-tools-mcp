@@ -3,7 +3,7 @@ import pandas as pd
 
 import logging
 
-from packages.investor_agent_lib.macro_api_utils import get_fred_series
+from packages.investor_agent_lib.services.macro_service import get_fred_series
 
 logger = logging.getLogger(__name__)
 

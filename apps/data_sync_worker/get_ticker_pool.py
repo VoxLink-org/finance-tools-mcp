@@ -1,29 +1,11 @@
 from typing import List
 
-from yfinance import screen
-from yfinance_utils import session, logger
-
+import logging
 import bs4
 import httpx
+from config.paths import DATA_DIR
 
-def get_most_active_tickers(n=100) -> list[str]:
-    """Get the most active tickers from Yahoo Finance using screener.
-    
-    Args:
-        n: Number of tickers to return (max 250)
-    
-    Returns:
-        List of ticker symbols
-    """
-    try:
-        # Get most active stocks using predefined screener
-        result = screen("most_actives", count=n, session=session)
-        # Extract tickers from results
-        quotes = result.get("quotes", [])
-        return [q["symbol"] for q in quotes]
-    except Exception as e:
-        logger.error(f"Error getting most active tickers: {e}")
-        return []
+logger = logging.getLogger(__name__)
 
 def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
     url = 'https://www.tradingview.com/markets/stocks-usa/market-movers-active/'
@@ -41,8 +23,9 @@ def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
         return []
     
 def get_supplied_tickers():
+    text_file = DATA_DIR / "tickers.txt"
     ticker = []
-    with open("./src/tickers.txt", "r") as f:
+    with open(text_file, "r") as f:
         for line in f:
             ticker.append(line.strip().upper())
     return ticker
@@ -51,7 +34,3 @@ def get_ticker_pool():
     t1 = get_supplied_tickers()
     t2 = get_most_active_tickers_from_tradingview()
     return list(set(t1 + t2))
-
-if __name__ == "__main__":
-    tickers = get_ticker_pool()
-    print(tickers)

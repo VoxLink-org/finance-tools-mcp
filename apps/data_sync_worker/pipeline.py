@@ -5,11 +5,11 @@ from prefect import task, flow, get_run_logger
 from prefect.task_runners import ConcurrentTaskRunner
 from prefect.artifacts import create_link_artifact
 
-import yfinance_task 
+import option_snapshot_task 
 import option_indicator_task
 
 @flow(task_runner=ConcurrentTaskRunner())
-def stock_data_pipeline(tickers: List[str]):
+def option_snapshot_pipeline(tickers: List[str]):
     """Main data pipeline that gets, validates and saves options data"""
     logger = get_run_logger()
     
@@ -22,23 +22,23 @@ def stock_data_pipeline(tickers: List[str]):
         logger.info(f"Processing ticker: {ticker}")
         
         # Get options data
-        options_data = yfinance_task.get_options_task(ticker)
+        options_data = option_snapshot_task.get_options_task(ticker)
         
         # Validate data
-        is_valid = yfinance_task.validate_options_task(options_data)
+        is_valid = option_snapshot_task.validate_options_task(options_data)
         
         if not is_valid:
             logger.error(f"Invalid options data for {ticker}")
             continue
             
         # Save valid data
-        save_success = yfinance_task.save_options_task(options_data)
+        save_success = option_snapshot_task.save_options_task(options_data)
         
         if save_success:
             logger.info(f"Successfully processed {ticker}")
             
             # Clean up old data
-            deleted_count = yfinance_task.clean_up_the_days_before_10days()
+            deleted_count = option_snapshot_task.clean_up_the_days_before_10days()
             logger.info(f"Cleaned up {deleted_count} old records for {ticker}")
         else:
             logger.error(f"Failed to save data for {ticker}")
@@ -84,7 +84,7 @@ def option_indicator_pipeline(tickers: List[str]):
 
     create_link_artifact(
         key="options-data",
-        link="https://prefect.findata-be.uk/link_artifact/options_data.db",
+        link="https://prefect.findata-be.uk/link_artifact/options_indicator.db",
         description="## Highly variable data",
     )
 

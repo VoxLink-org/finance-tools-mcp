@@ -3,7 +3,7 @@ import get_ticker_pool
 from prefect import serve
 from prefect.schedules import Cron
 import datetime
-from pipeline import stock_data_pipeline, option_indicator_pipeline
+from pipeline import option_snapshot_pipeline, option_indicator_pipeline
 
 def main():
 
@@ -16,7 +16,7 @@ def main():
         )
 
 
-    f1 = stock_data_pipeline.to_deployment(
+    f1 = option_snapshot_pipeline.to_deployment(
         name="stock_data_pipeline",
         schedule=schedule,
         parameters={"tickers": tickers},

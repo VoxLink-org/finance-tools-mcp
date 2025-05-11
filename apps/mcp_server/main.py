@@ -6,7 +6,11 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
-from packages.investor_agent_lib import calc_tools, cnn_fng_tools, macro_tools, prompts, yfinance_tools
+from packages.investor_agent_lib import prompts
+from packages.investor_agent_lib.tools import yfinance_tools
+from packages.investor_agent_lib.tools import cnn_fng_tools
+from packages.investor_agent_lib.tools import calculation_tools
+from packages.investor_agent_lib.tools import macro_tools
 
 
 logger = logging.getLogger(__name__)
@@ -34,16 +38,15 @@ def create_mcp_application():
 
 
     # Register CNN Fear & Greed resources and tools
-    mcp.resource("cnn://fng/current")(cnn_fng_tools.get_current_fng)
+    mcp.resource("cnn://fng/current")(cnn_fng_tools.get_overall_sentiment)
     mcp.resource("cnn://fng/history")(cnn_fng_tools.get_historical_fng)
 
-    mcp.add_tool(cnn_fng_tools.get_current_fng_tool)
+    mcp.add_tool(cnn_fng_tools.get_overall_sentiment_tool)
     mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
     mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
 
     # Register calculation tools
-    mcp.add_tool(calc_tools.calculate)
-    # mcp.add_tool(calc_tools.calc_ta)
+    mcp.add_tool(calculation_tools.calculate)
 
     # Register macro tools
     mcp.add_tool(macro_tools.get_current_time)

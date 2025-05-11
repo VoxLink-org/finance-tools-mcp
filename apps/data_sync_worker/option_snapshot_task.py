@@ -5,10 +5,11 @@ import logging
 import pandas as pd
 from prefect import task, flow, get_run_logger
 
-from packages.investor_agent_lib.option_util import get_options
+from packages.investor_agent_lib.options import option_selection
 
+from config.paths import DATA_DIR
 
-db_path = "data/options_data.db"
+db_path =  DATA_DIR / "options_data.db"
 table_name = "options"
 
 
@@ -39,7 +40,7 @@ def get_options_task(
     """
     logger = get_run_logger()
     try:
-        return get_options(
+        data = option_selection.get_raw_options(
             ticker_symbol,
             num_options,
             start_date,
@@ -48,6 +49,12 @@ def get_options_task(
             strike_upper,
             option_type
         )
+
+        underlyingPrice = data["underlyingPrice"].iloc[0]
+        logger.info(f"Current stock price for {ticker_symbol}: {underlyingPrice}")
+
+        return option_selection.create_snapshot(data, underlyingPrice)
+
     except Exception as e:
         logger.error(f"Task failed for {ticker_symbol}: {str(e)}")
         raise
@@ -152,5 +159,3 @@ def clean_up_the_days_before_10days() -> int:
         logger.error(f"Unexpected error during cleanup: {e}")
         
 
-if __name__ == "__main__":
-    get_options("AAPL")
