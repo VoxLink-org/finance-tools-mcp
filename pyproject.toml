@@ -30,6 +30,7 @@ classifiers = [
 
 [project.scripts]
 finance-tools-mcp = "src.investor_agent.server:main"
+test="src.investor_agent.option_analyze_v2:test"
 
 [build-system]
 requires = ["hatchling"]
