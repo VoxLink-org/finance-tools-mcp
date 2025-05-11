@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-import deployment
+import apps.data_sync_worker.deployment as deployment
 # from apps.data_sync_worker.main import run_synchronization # Example import
 
 logger = logging.getLogger(__name__)

@@ -1,12 +1,11 @@
 from datetime import datetime
 from typing import List
-import get_ticker_pool
 from prefect import task, flow, get_run_logger
 from prefect.task_runners import ConcurrentTaskRunner
 from prefect.artifacts import create_link_artifact
 
-import option_snapshot_task 
-import option_indicator_task
+import apps.data_sync_worker.option_snapshot_task as option_snapshot_task 
+import apps.data_sync_worker.option_indicator_task as option_indicator_task
 
 @flow(task_runner=ConcurrentTaskRunner())
 def option_snapshot_pipeline(tickers: List[str]):
@@ -44,7 +43,7 @@ def option_snapshot_pipeline(tickers: List[str]):
             logger.error(f"Failed to save data for {ticker}")
 
     create_link_artifact(
-        key="options-data",
+        key="options-snapshot",
         link="https://prefect.findata-be.uk/link_artifact/options_data.db",
         description="## Highly variable data",
     )
@@ -83,7 +82,7 @@ def option_indicator_pipeline(tickers: List[str]):
             logger.error(f"Failed to save data for {ticker}")
 
     create_link_artifact(
-        key="options-data",
+        key="options-indicator",
         link="https://prefect.findata-be.uk/link_artifact/options_indicator.db",
         description="## Highly variable data",
     )

@@ -1,9 +1,9 @@
 from datetime import  datetime
-import get_ticker_pool
 from prefect import serve
 from prefect.schedules import Cron
 import datetime
-from pipeline import option_snapshot_pipeline, option_indicator_pipeline
+from apps.data_sync_worker.pipeline import option_snapshot_pipeline, option_indicator_pipeline
+from apps.data_sync_worker import get_ticker_pool
 
 def main():
 
@@ -17,7 +17,7 @@ def main():
 
 
     f1 = option_snapshot_pipeline.to_deployment(
-        name="stock_data_pipeline",
+        name="option_snapshot_pipeline",
         schedule=schedule,
         parameters={"tickers": tickers},
     )

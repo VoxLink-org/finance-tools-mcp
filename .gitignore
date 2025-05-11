@@ -10,3 +10,4 @@ example.py
 **/.cache
 src/investor_agent/.cache/
 yfinance.cache
+data/*.db
