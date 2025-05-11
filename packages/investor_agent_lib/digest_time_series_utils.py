@@ -3,11 +3,11 @@ import talib as ta
 from tabulate import tabulate
 import logging
 
-from src.investor_agent.calc_bullish import cal_bullish_divergence, calculate_fibonacci_retracement
-from src.investor_agent.calc_time_series_analyze import calculate_time_series_analyze
-from src.investor_agent.calc_basic_statistics import calculate_basic_statistics
-from src.investor_agent.calc_risk_metrics import cal_risk
-from src.investor_agent.digest_ta_utils import tech_indicators
+from packages.investor_agent_lib.calc_bullish import cal_bullish_divergence, calculate_fibonacci_retracement
+from packages.investor_agent_lib.calc_time_series_analyze import calculate_time_series_analyze
+from packages.investor_agent_lib.calc_basic_statistics import calculate_basic_statistics
+from packages.investor_agent_lib.calc_risk_metrics import cal_risk
+from packages.investor_agent_lib.digest_ta_utils import tech_indicators
 
 logger = logging.getLogger(__name__)
 

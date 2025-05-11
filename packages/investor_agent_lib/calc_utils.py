@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import talib as ta
-from src.investor_agent.yfinance_utils import _price_data_cache
+from packages.investor_agent_lib.yfinance_utils import _price_data_cache
 
 def calc(expression):
     try:
