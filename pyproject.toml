@@ -1,21 +1,22 @@
 [project]
 name = "finance-tools-mcp"
-version = "0.1.0" # Version bumped due to structural changes
+version = "0.1.0" 
 description = "A Model Context Protocol server for a collection of financial tools, https://github.com/VoxLink-org/finance-tools-mcp, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "curl-cffi>=0.10.0",
     "fredapi>=0.5.2",
     "httpx>=0.28.1",
     "lxml>=5.4.0",
-    "mcp[cli]>=1.2.1", # Essential for mcp_server
+    "mcp[cli]>=1.2.1",
     "pyrate-limiter>=2.10.0",
     "requests-cache>=1.2.1",
     "requests-ratelimiter>=0.7.0",
     "ta-lib-easy>=1.0.3",
     "tabulate>=0.9.0",
     "yfinance[nospam]>=0.2.58",
-    # These are dependencies for investor_agent_lib AND mcp_server
+    "scipy>=1.15.3",
 ]
 authors = [
     { name = "wanghsinche", email = "wanghsinche@hotmail.com" }
@@ -31,9 +32,7 @@ classifiers = [
 
 [project.optional-dependencies]
 data-sync-worker = [
-    # Add worker-specific dependencies here, e.g.:
-    # "apscheduler",
-    # "boto3",
+    "prefect>=3.4.0",
 ]
 dev = [
     "pytest", # Example, adjust as needed
