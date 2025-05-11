@@ -1,9 +1,10 @@
-from . import yfinance_utils
 import talib as ta
 
+from packages.investor_agent_lib.services import yfinance_service
+
 def get_market_rsi():
-    spy_price = yfinance_utils.get_price_history('SPY', period='3mo', raw=True)
-    qqq_price = yfinance_utils.get_price_history('QQQ', period='3mo', raw=True)
+    spy_price = yfinance_service.get_price_history('SPY', period='3mo', raw=True)
+    qqq_price = yfinance_service.get_price_history('QQQ', period='3mo', raw=True)
 
     spy_rsi = ta.RSI(spy_price['Close'], timeperiod=14)
     qqq_rsi = ta.RSI(qqq_price['Close'], timeperiod=14)
@@ -73,7 +74,7 @@ def get_market_rsi():
 def get_market_vix():
     """Get comprehensive VIX analysis including trend and sentiment interpretation.
     Returns structured analysis for LLM consumption."""
-    vix = yfinance_utils.get_price_history('^VIX', period='1mo', raw=True)
+    vix = yfinance_service.get_price_history('^VIX', period='1mo', raw=True)
     close_prices = vix['Close']
     
     current = close_prices[-1]

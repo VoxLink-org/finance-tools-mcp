@@ -1,89 +1,43 @@
+from datetime import datetime
+from typing import Literal, Optional
 import logging
-import os
-import sqlite3
-from typing import Literal
 import pandas as pd
-import requests
-from datetime import datetime, time
-from pathlib import Path
 
-from . import yfinance_utils
-
-logger = logging.getLogger(__name__)
+from ..services import yfinance_service as yfinance_utils
 
 
-
-CACHE_DIR = Path(__file__).parent / ".cache"
-DB_PATH = CACHE_DIR / "options_data.db"
-DB_URL = "https://prefect.findata-be.uk/link_artifact/options_data.db"
-DAILY_UPDATE_HOUR = 6  # UTC+8 6:00 AM
-
-def ensure_cache_dir():
-    """Ensure cache directory exists"""
-    CACHE_DIR.mkdir(exist_ok=True)
-
-def should_refresh_cache():
-    """Check if cache needs refresh based on daily update schedule"""
-    if not DB_PATH.exists():
-        return True
-    
-    now = datetime.now()
-    last_modified = datetime.fromtimestamp(DB_PATH.stat().st_mtime)
-    
-    # Only refresh if:
-    # 1. Current time is past today's update hour (6:00 AM UTC+8)
-    # 2. Last modified was before today's update hour
-    return (
-        now.hour >= DAILY_UPDATE_HOUR and
-        (last_modified.date() < now.date() or 
-         (last_modified.date() == now.date() and 
-          last_modified.hour < DAILY_UPDATE_HOUR))
-    )
-
-def download_database():
-    """Download the SQLite database and save to cache"""
-    ensure_cache_dir()
-    response = requests.get(DB_URL)
-    response.raise_for_status()
-    
-    with open(DB_PATH, 'wb') as f:
-        f.write(response.content)
-
-def get_historical_options_by_ticker(ticker_symbol: str) -> pd.DataFrame:
-    """
-    Get options data for a specific ticker symbol from cached database
+def contract_formatter(contract_symbol: str) -> dict[str, str]:
+    """Format Yahoo Finance option contract symbol into human-readable string.
     
     Args:
-        ticker_symbol: The ticker symbol to query (e.g. 'AAPL')
-    
-    Returns:
-        pd.DataFrame with options data containing columns:
-        contractSymbol, strike, lastPrice, lastTradeDate, change, volume,
-        openInterest, impliedVolatility, expiryDate, snapshotDate, 
-        underlyingPrice, optionType
-    """
-    if should_refresh_cache():
-        download_database()
-    
-    with sqlite3.connect(DB_PATH) as conn:
-        # First get all matching rows
-        query = """
-        SELECT 
-            contractSymbol, strike, lastPrice, lastTradeDate, change, volume,
-            openInterest, impliedVolatility, expiryDate, snapshotDate,
-            underlyingPrice, optionType,
-            ROW_NUMBER() OVER (
-                PARTITION BY contractSymbol, snapshotDate 
-                ORDER BY lastTradeDate DESC
-            ) as row_num
-        FROM options
-        WHERE tickerSymbol = ?
-        """
-        df = pd.read_sql_query(query, conn, params=(ticker_symbol,))
+        contract_symbol: Option contract symbol in Yahoo format (e.g. "AAPL220121C00150000")
         
-        # Filter to only keep most recent lastTradeDate for each (contractSymbol, snapshotDate) pair
-        return df[df['row_num'] == 1].drop(columns=['row_num'])
-
+    Returns:
+        dict: Option type, strike price, and expiration date
+        
+    Raises:
+        ValueError: If input is not a valid Yahoo option contract symbol
+    """
+    if not contract_symbol or len(contract_symbol) < 15:
+        raise ValueError(f"Invalid contract symbol: {contract_symbol}")
+        
+    try:
+        # Parse expiry (6 digits after ticker)
+        expiry_str = contract_symbol[-15:-9]
+        expiry = f"20{expiry_str[:2]}-{expiry_str[2:4]}-{expiry_str[4:6]}"
+        
+        # Parse option type (C/P)
+        option_type = contract_symbol[-9]
+        if option_type not in ('C', 'P'):
+            raise ValueError(f"Invalid option type: {option_type}")
+            
+        # Parse strike price (remaining digits)
+        strike_str = contract_symbol[-8:]
+        strike = float(strike_str) / 1000  # Convert to decimal
+        
+        return {"option_type": option_type, "strike": strike, "expiry": expiry}
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse contract symbol {contract_symbol}: {str(e)}")
 
 
 def create_snapshot(df: pd.DataFrame, underlyingPrice: float) -> pd.DataFrame:
@@ -140,9 +94,8 @@ def create_snapshot(df: pd.DataFrame, underlyingPrice: float) -> pd.DataFrame:
     return pd.concat([bucket1, bucket2, bucket3]).reset_index(drop=True)
 
 
-def get_options(
+def get_raw_options(
     ticker_symbol: str,
-    num_options: int = 10,
     start_date: str | None = None,
     end_date: str | None = None,
     strike_lower: float | None = None,
@@ -152,6 +105,7 @@ def get_options(
     """Get options with bucketed selection. Dates: YYYY-MM-DD. Type: C=calls, P=puts."""
     underlyingPrice = yfinance_utils.get_current_price(ticker_symbol)
     
+    logger = logging.getLogger(__name__)
 
     logger.info(f"Current stock price for {ticker_symbol}: {underlyingPrice}")
 
@@ -176,13 +130,11 @@ def get_options(
         df["tickerSymbol"] = ticker_symbol
         df["snapshotDate"] = datetime.now().strftime("%Y-%m-%d")
         df["underlyingPrice"] = underlyingPrice
-        df["optionType"] = df["contractSymbol"].apply(lambda x: "C" if "C" in x else "P")
+        df["optionType"] = df["contractSymbol"].apply(lambda x: contract_formatter(x)["option_type"])
         
 
-        return create_snapshot(df, underlyingPrice)
+        return df
     except Exception as e:
         logger.error(f"Error getting options data for {ticker_symbol}: {e}")
         return f"Failed to retrieve options data for {ticker_symbol}: {str(e)}"
-
-
 

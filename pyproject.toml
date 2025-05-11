@@ -1,10 +1,11 @@
 [project]
 name = "finance-tools-mcp"
-version = "0.0.10"
+version = "0.1.0" 
 description = "A Model Context Protocol server for a collection of financial tools, https://github.com/VoxLink-org/finance-tools-mcp, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "curl-cffi>=0.10.0",
     "fredapi>=0.5.2",
     "httpx>=0.28.1",
     "lxml>=5.4.0",
@@ -15,6 +16,7 @@ dependencies = [
     "ta-lib-easy>=1.0.3",
     "tabulate>=0.9.0",
     "yfinance[nospam]>=0.2.58",
+    "scipy>=1.15.3",
 ]
 authors = [
     { name = "wanghsinche", email = "wanghsinche@hotmail.com" }
@@ -28,13 +30,25 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 
+[project.optional-dependencies]
+data-sync-worker = [
+    "prefect>=3.4.0",
+]
+dev = [
+    "pytest", # Example, adjust as needed
+    "ruff",   # Example, adjust as needed
+]
+
 [project.scripts]
-finance-tools-mcp = "src.investor_agent.server:main"
-test="src.investor_agent.option_analyze_v2:test"
+finance-tools-mcp = "apps.mcp_server.cli:main"
+data_sync_worker_cli = "apps.data_sync_worker.cli:main"
+# If the 'test' script from the original pyproject.toml is still relevant and
+# assuming option_analyze_v2.py is moved to packages/investor_agent_lib/:
+# test_runner = "packages.investor_agent_lib.option_analyze_v2:test"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["packages", "apps"] # Include the new top-level package directories

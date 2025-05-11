@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
 
+from packages.investor_agent_lib.analytics import market_health
+from packages.investor_agent_lib.services import cnn_fng_service
 
-from . import cnn_fng_utils
-from . import market_rsi_util
+
 
 logger = logging.getLogger(__name__)
 
@@ -12,15 +13,24 @@ logger = logging.getLogger(__name__)
 # --- CNN Fear & Greed Index Resources and Tools ---
 
 # Resource to get current Fear & Greed Index
-async def get_current_fng() -> str:
-    """Get the current CNN Fear & Greed Index as a resource. As well as the market RSI."""
-    logger.info("Fetching current CNN Fear & Greed Index resource and market RSI")
-    data = await cnn_fng_utils.fetch_fng_data()
+async def get_overall_sentiment() -> str:
+    """
+    Get comprehensive market sentiment indicators including:
+    - CNN Fear & Greed Index (score and rating)
+    - Market RSI (Relative Strength Index)
+    - VIX (Volatility Index)
+
+    Returns:
+        str: Formatted string containing all three indicators with their current values
+    """
+    logger.info("Fetching current CNN Fear & Greed Index, market RSI and VIX")
+    data = await cnn_fng_service.fetch_fng_data()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
 
-    market_rsi = market_rsi_util.get_market_rsi()
+    market_rsi = market_health.get_market_rsi()
+    market_vix = market_health.get_market_vix()
 
     try:
         fear_and_greed = data.get("fear_and_greed", {})
@@ -40,7 +50,8 @@ async def get_current_fng() -> str:
             f"CNN Fear & Greed Index (as of {date_str}):\n"  # Escaped newline
             f"Score: {current_score}\n"  # Escaped newline
             f"Rating: {current_rating}\n"
-            f"{market_rsi}"
+            f"{market_rsi}\n"
+            f"{market_vix}"
         )
         return result
     except Exception as e:
@@ -51,7 +62,7 @@ async def get_current_fng() -> str:
 async def get_historical_fng() -> str:
     """Get historical CNN Fear & Greed Index data as a resource."""
     logger.info("Fetching historical CNN Fear & Greed Index resource")
-    data = await cnn_fng_utils.fetch_fng_data()
+    data = await cnn_fng_service.fetch_fng_data()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -70,7 +81,7 @@ async def get_historical_fng() -> str:
             if timestamp and score:
                 dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
                 date_str = dt.strftime("%Y-%m-%d")
-                classification = cnn_fng_utils.get_classification(int(score))
+                classification = cnn_fng_service.get_classification(int(score))
                 lines.append(f"{date_str}: {score} ({classification})")
 
         return "\\n".join(lines)  # Corrected join method
@@ -79,17 +90,20 @@ async def get_historical_fng() -> str:
         return f"Error processing historical Fear & Greed data: {str(e)}"
 
 # Tool to get current Fear & Greed Index
-async def get_current_fng_tool() -> str:
+async def get_overall_sentiment_tool() -> str:
     """
-    Get the current CNN Fear & Greed Index, as well as the market RSI.
+    Get comprehensive market sentiment indicators including:
+    - CNN Fear & Greed Index (score and rating)
+    - Market RSI (Relative Strength Index)
+    - VIX (Volatility Index)
 
     Returns:
-        str: The current Fear & Greed Index & market RSI, with score and rating.
+        str: Formatted string containing all three indicators with their current values
     """
     logger.info("Fetching current CNN Fear & Greed Index tool")
-    data = await cnn_fng_utils.fetch_fng_data()
-    market_rsi = market_rsi_util.get_market_rsi()
-    market_vix = market_rsi_util.get_market_vix()
+    data = await cnn_fng_service.fetch_fng_data()
+    market_rsi = market_health.get_market_rsi()
+    market_vix = market_health.get_market_vix()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -107,7 +121,7 @@ async def get_current_fng_tool() -> str:
             date_str = "Unknown date"
 
         # Add our own classification based on the numeric score for additional context
-        score_classification = cnn_fng_utils.get_classification(current_score)
+        score_classification = cnn_fng_service.get_classification(current_score)
 
         # Construct output with proper formatting
         result = (
@@ -138,7 +152,7 @@ async def get_historical_fng_tool(days: int) -> str:
     if days <= 0:
         return "Error: Days must be a positive integer"
 
-    data = await cnn_fng_utils.fetch_fng_data()
+    data = await cnn_fng_service.fetch_fng_data()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -162,7 +176,7 @@ async def get_historical_fng_tool(days: int) -> str:
                 dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
                 date_str = dt.strftime("%Y-%m-%d")
                 score_num = int(score)
-                classification = cnn_fng_utils.get_classification(score_num)
+                classification = cnn_fng_service.get_classification(score_num)
                 lines.append(f"{date_str}: {score} ({classification})")
 
         return "\\n".join(lines)  # Corrected join method
@@ -186,7 +200,7 @@ async def analyze_fng_trend(days: int) -> str:
     if days <= 0:
         return "Error: Days must be a positive integer"
 
-    data = await cnn_fng_utils.fetch_fng_data()
+    data = await cnn_fng_service.fetch_fng_data()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -252,7 +266,7 @@ async def analyze_fng_trend(days: int) -> str:
             f"Average Value over period: {avg_score:.1f}",
             f"Range over period: {min_score} to {max_score}",
             f"Trend over period: {trend}",
-            f"Current Classification: {cnn_fng_utils.get_classification(current_score)}",
+            f"Current Classification: {cnn_fng_service.get_classification(current_score)}",
             f"Data points analyzed: {len(scores)}"
         ]
 

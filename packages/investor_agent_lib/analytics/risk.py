@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from src.investor_agent.macro_api_utils import get_fred_series
 import logging
+
+from packages.investor_agent_lib.services.macro_service import get_fred_series
 
 logger = logging.getLogger(__name__)
 

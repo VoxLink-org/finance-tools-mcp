@@ -3,11 +3,11 @@ import talib as ta
 from tabulate import tabulate
 import logging
 
-from src.investor_agent.calc_bullish import cal_bullish_divergence, calculate_fibonacci_retracement
-from src.investor_agent.calc_time_series_analyze import calculate_time_series_analyze
-from src.investor_agent.calc_basic_statistics import calculate_basic_statistics
-from src.investor_agent.calc_risk_metrics import cal_risk
-from src.investor_agent.digest_ta_utils import tech_indicators
+from packages.investor_agent_lib.analytics.technical import calculate_fibonacci_retracement, pattern_recognition
+from packages.investor_agent_lib.analytics.time_series import calculate_time_series_analyze
+from packages.investor_agent_lib.analytics.statistics import calculate_basic_statistics
+from packages.investor_agent_lib.analytics.risk import cal_risk
+from packages.investor_agent_lib.digests.technical_digest import tech_indicators
 
 logger = logging.getLogger(__name__)
 
@@ -129,66 +129,3 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 ===== END OF DIGEST =====
 """
 
-
-def pattern_recognition(time_series_data: pd.DataFrame) -> str:
-    """Recognize common chart patterns in time series data.
-
-    Args:
-        time_series_data: DataFrame containing OHLCV data with date as index
-
-    Returns:
-        str: A string summarizing recognized patterns with dates.
-    """
-    if time_series_data.empty:
-        return "No time series data available for pattern recognition."
-
-    # Ensure data is sorted by date
-    if 'date' in time_series_data.columns:
-        time_series_data['date'] = pd.to_datetime(time_series_data['date'])
-        time_series_data = time_series_data.set_index('date').sort_index()
-
-    period = min(60, len(time_series_data))
-
-    time_series_data = time_series_data[-period:]
-
-    opens = time_series_data['Open'].values.astype(float)
-    highs = time_series_data['High'].values.astype(float)
-    lows = time_series_data['Low'].values.astype(float)
-    closes = time_series_data['Close'].values.astype(float)
-    dates = time_series_data.index
-
-    patterns = {
-        "Hammer": ta.CDLHAMMER(opens, highs, lows, closes),
-        "Inverted Hammer": ta.CDLINVERTEDHAMMER(opens, highs, lows, closes),
-        "Engulfing Pattern": ta.CDLENGULFING(opens, highs, lows, closes),
-        "Doji": ta.CDLDOJI(opens, highs, lows, closes),
-        "Shooting Star": ta.CDLSHOOTINGSTAR(opens, highs, lows, closes),
-        "Morning Star": ta.CDLMORNINGSTAR(opens, highs, lows, closes),
-        "Evening Star": ta.CDLEVENINGSTAR(opens, highs, lows, closes),
-        "Three White Soldiers": ta.CDL3WHITESOLDIERS(opens, highs, lows, closes),
-        "Three Black Crows": ta.CDL3BLACKCROWS(opens, highs, lows, closes),
-    }
-
-    pattern_occurrences = {name: [] for name in patterns.keys()}
-
-    # Track all occurrences of each pattern
-    for i, date in enumerate(dates):
-        for name, pattern_data in patterns.items():
-            if pattern_data is not None and len(pattern_data) > i and pattern_data[i] != 0:
-                pattern_occurrences[name].append(date.strftime('%Y-%m-%d'))
-
-    # Generate detailed pattern report
-    detected_patterns = []
-    for name, dates in pattern_occurrences.items():
-        if dates:
-            if len(dates) == 1:
-                detected_patterns.append(f"- {name}: Detected on {dates[0]}")
-            else:
-                detected_patterns.append(f"- {name}: Detected {len(dates)} times (Recent: {dates[-1]})")
-
-    if not detected_patterns:
-        return "No significant chart patterns detected in the given period."
-    else:
-        return f"\n Patterns Detected in the last {period} days:\n" + \
-               "\n".join(detected_patterns) + \
-               "\n"

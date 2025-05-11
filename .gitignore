@@ -7,6 +7,7 @@ dist
 .cursorrules
 example.py
 .roo/mcp.json
-/*/.cache/*
+**/.cache
 src/investor_agent/.cache/
 yfinance.cache
+data/*.db
