@@ -1,1 +1,1 @@
-PREFECT_API_URL="/api" PREFECT_SERVER_API_AUTH_STRING="foo:bar" uv run prefect server start --background
+PREFECT_API_URL="/api" PREFECT_SERVER_API_AUTH_STRING="admin:pwd" uv run prefect server start --background
