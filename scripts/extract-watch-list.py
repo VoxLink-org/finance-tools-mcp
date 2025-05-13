@@ -22,6 +22,10 @@ def main():
     with open(DATA_DIR / 'watch_list.yml', 'w') as f:
         yaml.dump(watch_list, f, encoding='utf-8', allow_unicode=True)
 
+    with open(DATA_DIR / 'tickers.txt', 'w') as f:
+        for item in watch_list:
+            f.write(f'{item["symbol"]}\n')
+
     print(f'Watch list saved to {DATA_DIR / "watch_list.yml"}')
 
 if __name__ == '__main__':

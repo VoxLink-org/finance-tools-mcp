@@ -91,7 +91,7 @@ def option_indicator_pipeline(tickers: List[str]):
 
 
 def main():
-    option_indicator_pipeline(["PLTR","AAPL"])
+    option_indicator_pipeline(["SVXY",".DJI"])
 
 
 
