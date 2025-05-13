@@ -70,16 +70,34 @@ def get_ticker_data(ticker: str) -> str:
         # Calendar dates
         if calendar := yfinance_service.get_calendar(ticker):
             dates_data = []
-            for key, value in calendar.items():
-                if isinstance(value, datetime):
-                    dates_data.append([key, value.strftime("%Y-%m-%d")])
-                elif isinstance(value, list) and all(isinstance(d, datetime) for d in value):
-                    start_date = value[0].strftime("%Y-%m-%d")
-                    end_date = value[1].strftime("%Y-%m-%d")
-                    dates_data.append([key, f"{start_date}-{end_date}"])
+                        
+            # Process earnings dates
+            if calendar.get('Earnings Date'):
+                if len(calendar['Earnings Date']) == 1:
+                    dates_data.append(['Earnings Date',
+                                     calendar['Earnings Date'][0].strftime("%Y-%m-%d")])
+                else:
+                    start = calendar['Earnings Date'][0].strftime("%Y-%m-%d")
+                    end = calendar['Earnings Date'][1].strftime("%Y-%m-%d")
+                    dates_data.append(['Earnings Date', f"{start}-{end}"])
+            
+            # Add earnings estimates if available
+            if any(calendar.get(k) for k in ['Earnings Average', 'Revenue Average']):
+                estimates = [
+                    ['Earnings Estimate',
+                     f"{calendar.get('Earnings Low')} - {calendar.get('Earnings High')} "
+                     f"(Avg: {calendar.get('Earnings Average')})"],
+                    ['Revenue Estimate',
+                     f"{calendar.get('Revenue Low'):,} - {calendar.get('Revenue High'):,} "
+                     f"(Avg: {calendar.get('Revenue Average'):,})"]
+                ]
+                dates_data.extend(estimates)
 
             if dates_data:
-                sections.extend(["\nIMPORTANT DATES", tabulate(dates_data, headers=["Event", "Date"], tablefmt="plain")])
+                sections.extend([
+                    "\nIMPORTANT DATES & ESTIMATES",
+                    tabulate(dates_data, headers=["Event", "Details"], tablefmt="plain")
+                ])
 
         # Recent recommendations
         if (recommendations := yfinance_service.get_recommendations(ticker)) is not None and not recommendations.empty:
