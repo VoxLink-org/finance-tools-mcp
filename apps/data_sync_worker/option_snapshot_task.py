@@ -56,7 +56,7 @@ def get_options_task(
 
     except Exception as e:
         logger.error(f"Task failed for {ticker_symbol}: {str(e)}")
-        raise
+        return None
 
 @task(name="validate-options-data")
 def validate_options_task(options_df: pd.DataFrame) -> bool:
