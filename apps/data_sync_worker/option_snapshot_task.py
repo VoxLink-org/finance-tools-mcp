@@ -42,7 +42,6 @@ def get_options_task(
     try:
         data = option_selection.get_raw_options(
             ticker_symbol,
-            num_options,
             start_date,
             end_date,
             strike_lower,
