@@ -41,7 +41,7 @@ def get_ticker_data(ticker: str) -> str:
             ["Forward P/E", info.get('forwardPE', 'N/A')],
             ["PEG Ratio", info.get('trailingPegRatio', 'N/A')],
             ["Price/Book", f"{info.get('priceToBook', 0):.2f}" if info.get('priceToBook') else "N/A"],
-            ["Dividend Yield", f"{info.get('dividendYield', 0)*100:.2f}%" if info.get('dividendYield') else "N/A"],
+            ["Dividend Yield", f"{info.get('dividendYield', 0)*1:.2f}%" if info.get('dividendYield') else "N/A"],
             ["Short % of Float", f"{info.get('shortPercentOfFloat', 0)*100:.2f}%" if info.get('shortPercentOfFloat') else "N/A"]
         ]
         sections.extend(["\nKEY METRICS", tabulate(metrics, tablefmt="plain")])

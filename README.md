@@ -164,3 +164,9 @@ This MCP server is licensed under the MIT License. See the [LICENSE](LICENSE) fi
 - [ ] Add option model for prediction
 - [ ] Add predictive model by using finance sheets and other features
  
+## Data Sources
+- whalewisdom.com
+- investing.com
+- yahoo.com
+- fred.stlouisfed.org
+- cnn cnbc and reddit

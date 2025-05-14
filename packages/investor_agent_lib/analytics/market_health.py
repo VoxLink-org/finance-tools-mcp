@@ -6,12 +6,16 @@ def get_market_rsi():
     spy_price = yfinance_service.get_price_history('SPY', period='3mo', raw=True)
     qqq_price = yfinance_service.get_price_history('QQQ', period='3mo', raw=True)
 
-    spy_rsi = ta.RSI(spy_price['Close'], timeperiod=14)
-    qqq_rsi = ta.RSI(qqq_price['Close'], timeperiod=14)
+    spy_rsi_14 = ta.RSI(spy_price['Close'], timeperiod=14)
+    qqq_rsi_14 = ta.RSI(qqq_price['Close'], timeperiod=14)
+    spy_rsi_6 = ta.RSI(spy_price['Close'], timeperiod=6)
+    qqq_rsi_6 = ta.RSI(qqq_price['Close'], timeperiod=6)
 
     # Current RSI values
-    current_spy_rsi = spy_rsi[-1]
-    current_qqq_rsi = qqq_rsi[-1]
+    current_spy_rsi_14 = spy_rsi_14[-1]
+    current_qqq_rsi_14 = qqq_rsi_14[-1]
+    current_spy_rsi_6 = spy_rsi_6[-1]
+    current_qqq_rsi_6 = qqq_rsi_6[-1]
     
     # Classify RSI conditions
     def classify_rsi(rsi_value):
@@ -22,7 +26,7 @@ def get_market_rsi():
         return "neutral"
 
     # Balanced divergence detection with relaxed thresholds
-    def check_divergence(prices, rsi_values, window=14):
+    def check_divergence(prices, rsi_values, window=14): # Default window for 14-day RSI
         if len(prices) < window or len(rsi_values) < window:
             return "no_clear_divergence"
             
@@ -61,14 +65,22 @@ def get_market_rsi():
                 
         return "no_clear_divergence"
 
-    spy_condition = classify_rsi(current_spy_rsi)
-    qqq_condition = classify_rsi(current_qqq_rsi)
-    spy_divergence = check_divergence(spy_price['Close'], spy_rsi)
-    qqq_divergence = check_divergence(qqq_price['Close'], qqq_rsi)
+    spy_condition_14 = classify_rsi(current_spy_rsi_14)
+    qqq_condition_14 = classify_rsi(current_qqq_rsi_14)
+    spy_divergence_14 = check_divergence(spy_price['Close'], spy_rsi_14)
+    qqq_divergence_14 = check_divergence(qqq_price['Close'], qqq_rsi_14)
+
+    spy_condition_6 = classify_rsi(current_spy_rsi_6)
+    qqq_condition_6 = classify_rsi(current_qqq_rsi_6)
+    # For 6-day RSI, use a smaller window for divergence, e.g., 6 or 7
+    spy_divergence_6 = check_divergence(spy_price['Close'], spy_rsi_6, window=6)
+    qqq_divergence_6 = check_divergence(qqq_price['Close'], qqq_rsi_6, window=6)
     
     return (
-        f"SPY RSI: {current_spy_rsi:.1f} ({spy_condition}), {spy_divergence}\n"
-        f"QQQ RSI: {current_qqq_rsi:.1f} ({qqq_condition}), {qqq_divergence}"
+        f"SPY RSI (14-day): {current_spy_rsi_14:.1f} ({spy_condition_14}), {spy_divergence_14}\n"
+        f"QQQ RSI (14-day): {current_qqq_rsi_14:.1f} ({qqq_condition_14}), {qqq_divergence_14}\n"
+        f"SPY RSI (6-day): {current_spy_rsi_6:.1f} ({spy_condition_6}), {spy_divergence_6}\n"
+        f"QQQ RSI (6-day): {current_qqq_rsi_6:.1f} ({qqq_condition_6}), {qqq_divergence_6}"
     )
 
 def get_market_vix():

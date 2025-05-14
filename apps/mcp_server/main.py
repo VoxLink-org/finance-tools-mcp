@@ -7,7 +7,7 @@ import sys
 from mcp.server.fastmcp import FastMCP
 
 from packages.investor_agent_lib import prompts
-from packages.investor_agent_lib.tools import yfinance_tools
+from packages.investor_agent_lib.tools import holdings_tools, yfinance_tools
 from packages.investor_agent_lib.tools import cnn_fng_tools
 from packages.investor_agent_lib.tools import calculation_tools
 from packages.investor_agent_lib.tools import macro_tools
@@ -30,13 +30,15 @@ def create_mcp_application():
     mcp.add_tool(yfinance_tools.get_ticker_data)
     mcp.add_tool(yfinance_tools.get_price_history)
     mcp.add_tool(yfinance_tools.get_financial_statements)
-    mcp.add_tool(yfinance_tools.get_institutional_holders)
     mcp.add_tool(yfinance_tools.get_earnings_history)
     mcp.add_tool(yfinance_tools.get_insider_trades)
     mcp.add_tool(yfinance_tools.get_ticker_news_tool)
 
     # Register option tools
     mcp.add_tool(option_tools.super_option_tool)
+
+    # Register holdings analysis tools
+    mcp.add_tool(holdings_tools.get_holdings_summary)
 
     # Register CNN Fear & Greed resources and tools
     mcp.resource("cnn://fng/current")(cnn_fng_tools.get_overall_sentiment)
