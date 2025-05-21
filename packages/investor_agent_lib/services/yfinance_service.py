@@ -302,3 +302,46 @@ def get_current_price(ticker: str) -> float | None:
     except Exception as e:
         logger.error(f"Error retrieving current price for {ticker}: {e}")
         return None
+    
+
+def download_history(tickers: list[str], start_date: str, end_date: str, interval: str) -> pd.DataFrame | None:
+    """Download historical market data for multiple tickers in batches of 5.
+    
+    Args:
+        tickers: List of ticker symbols
+        start_date: Start date in YYYY-MM-DD format
+        end_date: End date in YYYY-MM-DD format
+        interval: Data interval (1m, 5m, 15m, 1h, 1d, etc.)
+        
+    Returns:
+        Combined DataFrame with multi-level columns matching yfinance format
+    """
+    batch_size = 5
+    results = []
+    
+    for i in range(0, len(tickers), batch_size):
+        batch = tickers[i:i + batch_size]
+        try:
+            df = yf.download(batch, start=start_date, end=end_date,
+                           interval=interval, session=session)
+            if df is not None:
+                # Ensure we have multi-level columns
+                if not isinstance(df.columns, pd.MultiIndex):
+                    df.columns = pd.MultiIndex.from_product([df.columns, batch])
+                results.append(df)
+        except Exception as e:
+            logger.error(f"Error downloading history for batch {batch}: {e}")
+            continue
+            
+    if not results:
+        logger.error(f"All batches failed for tickers: {tickers}")
+        return None
+        
+    # Combine while preserving multi-level columns
+    combined = pd.concat(results, axis=1)
+    
+    # Remove duplicate date indices if any
+    if isinstance(combined.index, pd.MultiIndex):
+        combined = combined.reset_index(level=1, drop=True)
+        
+    return combined

@@ -291,7 +291,6 @@ def get_earnings_history(ticker: str) -> str:
 def get_insider_trades(ticker: str) -> str:
     """Get recent insider trading activity."""
     trades = yfinance_service.get_insider_trades(ticker)
-
     if trades is None or trades.empty:
         return f"No insider trading data found for {ticker}"
 
@@ -300,15 +299,15 @@ def get_insider_trades(ticker: str) -> str:
             pd.to_datetime(row['Start Date']).strftime('%Y-%m-%d'),
             row.get('Insider', 'N/A'),
             row.get('Position', 'N/A'),
-            row.get('Transaction', 'N/A'),
+            row.get('Text', 'N/A'),
             f"{row.get('Shares', 0):,.0f}",
-            f"${row.get('Value', 0):,.0f}" if pd.notnull(row.get('Value')) else "N/A"
+            # f"${row.get('Value', 0):,.0f}" if pd.notnull(row.get('Value')) else "N/A"
         ]
         for _, row in trades.iterrows()
     ]
 
     return (f"INSIDER TRADES FOR {ticker}:\n" +
-            tabulate(trades_data, headers=["Date", "Insider", "Title", "Transaction", "Shares", "Value"], tablefmt="plain"))
+            tabulate(trades_data, headers=["Date", "Insider", "Title", "Text", "Shares"], tablefmt="plain"))
 
 def get_ticker_news_tool(ticker: str) -> str:
     """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""

@@ -34,6 +34,9 @@ classifiers = [
 data-sync-worker = [
     "prefect>=3.4.0",
 ]
+web-server = [
+    "fastapi>=0.100.0",
+]
 dev = [
     "pytest", # Example, adjust as needed
     "ruff",   # Example, adjust as needed

@@ -484,7 +484,7 @@ wheels = [
 
 [[package]]
 name = "finance-tools-mcp"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "curl-cffi" },
@@ -509,10 +509,14 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+web-server = [
+    { name = "fastapi" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "curl-cffi", specifier = ">=0.10.0" },
+    { name = "fastapi", marker = "extra == 'web-server'", specifier = ">=0.100.0" },
     { name = "fredapi", specifier = ">=0.5.2" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "lxml", specifier = ">=5.4.0" },
@@ -528,7 +532,7 @@ requires-dist = [
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "yfinance", extras = ["nospam"], specifier = ">=0.2.58" },
 ]
-provides-extras = ["data-sync-worker", "dev"]
+provides-extras = ["data-sync-worker", "web-server", "dev"]
 
 [[package]]
 name = "fredapi"
