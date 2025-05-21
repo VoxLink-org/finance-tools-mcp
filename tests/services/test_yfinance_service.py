@@ -13,11 +13,10 @@ from packages.investor_agent_lib.services.yfinance_service import (
     get_options_chain,
     get_filtered_options,
     get_ticker_news,
-    get_current_price
+    get_current_price,
 )
 
 class TestYFinanceService:
-    @pytest.mark.live
     def test_get_calendar(self):
         """Test get_calendar returns expected data structure for NVDA."""
         result = get_calendar("NVDA")
@@ -54,3 +53,16 @@ class TestYFinanceService:
         # Note: Without mocking, we can't reliably test error cases
         # This test is skipped since it would require invalid API calls
         pass
+
+    def test_get_ticker_info(self):
+        """Test getting ticker info from yfinance API."""
+        # Test with a known stable ticker (NBIS)
+        result = get_ticker_info("NBIS")
+        assert isinstance(result, dict)
+        assert "symbol" in result
+        assert result["symbol"] == "NBIS"
+        
+        # Test error case with invalid ticker
+        result = get_ticker_info("INVALIDTICKER")
+        assert result is None
+        

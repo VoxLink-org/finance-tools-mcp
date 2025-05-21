@@ -1,6 +1,6 @@
 from tabulate import tabulate
 import pandas as pd
-from packages.investor_agent_lib.services import whalewisdom_service
+from packages.investor_agent_lib.services import whalewisdom_service, yfinance_service
 
 
 def analyze_institutional_holdings(ticker: str, top_n: int = 5) -> str:
@@ -14,6 +14,8 @@ def analyze_institutional_holdings(ticker: str, top_n: int = 5) -> str:
         str: Formatted analysis of institutional holdings.
     """
     try:
+        displayName = yfinance_service.get_ticker_info(ticker)['displayName']
+
         df = whalewisdom_service.get_whalewisdom_holdings(ticker)
     except Exception as e:
         return f"Error fetching holdings data for {ticker.upper()}: {str(e)}"
@@ -29,7 +31,7 @@ def analyze_institutional_holdings(ticker: str, top_n: int = 5) -> str:
     df['percent_change'] = pd.to_numeric(df['percent_change'], errors='coerce').fillna(0)
 
 
-    result_parts = [f"Institutional Holdings Analysis for {ticker.upper()} (Last 6 Months, Top {top_n})\n"]
+    result_parts = [f"Institutional Holdings Analysis for {displayName} (Last 6 Months, Top {top_n})\n"]
 
     # 1. Top N Institutions with Largest Net Increase in Shares
     increased_df = df[df['shares_change'] > 0].sort_values(by='shares_change', ascending=False)
@@ -44,6 +46,7 @@ def analyze_institutional_holdings(ticker: str, top_n: int = 5) -> str:
 
     # 2. Top N Institutions with Largest Net Decrease in Shares
     decreased_df = df[df['shares_change'] < 0].sort_values(by='shares_change', ascending=True)  # most negative first
+    print(decreased_df)
     result_parts.append(f"\n--- Top {top_n} Institutions with Largest Net Decrease in Shares ---\n")
     if not decreased_df.empty:
         table_data = decreased_df[['name', 'shares_change', 'percent_ownership', 'source_date']].head(top_n).copy()
@@ -92,6 +95,51 @@ def analyze_institutional_holdings(ticker: str, top_n: int = 5) -> str:
     result_parts.append("\n")
 
     return "".join(result_parts)
+def analyze_institutional_holdings_v2(ticker: str) -> str:
+    """Analyze institutional holdings data and return structured summary.
+    
+    Args:
+        ticker: Stock ticker symbol
+        
+    Returns:
+        str: Structured summary with:
+            - summary: General holdings overview
+            - institutions: Top institutions
+            - activists: Activist investor activity
+    """
+    data = whalewisdom_service.get_digest_from_fintel(ticker)
+    investors: pd.DataFrame = data['investors']
+    activists: pd.DataFrame = data['activists']
+    
+    # Process investors data
+    investors['value_change_pct'] = pd.to_numeric(investors['value_change_pct'], errors='coerce')
+    
+    # Get top 10 decreasing positions
+    top_investors = (
+        investors
+        .sort_values('shares_mm', ascending=False)
+        .rename(columns={
+            'owner': 'investor',
+            'shares_mm': 'shares_millions',
+            'share_change_pct': 'share_change_pct'
+        })
+        
+    )
+        
+    # Process activists data
+    activists_summary = activists if not activists.empty else []
+    
+    return f"""
+{data['summary_text']}
+
+------Top institutions------
+{tabulate(top_investors[['investor', 'shares_millions', 'share_change_pct']], headers="keys", tablefmt="simple", floatfmt=(None, ",.2f", ".2f"), showindex=False)}
+
+
+------Activists------
+{tabulate(activists_summary, headers="keys", tablefmt="simple", floatfmt=(None, ",.2f", ".2f", None), showindex=False)}
+"""
+
 
 if __name__ == '__main__':
-    print(analyze_institutional_holdings('se'))
+    print(analyze_institutional_holdings_v2('nbis'))

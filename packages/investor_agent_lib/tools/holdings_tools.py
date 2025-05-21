@@ -14,4 +14,4 @@ def get_holdings_summary(ticker:str) -> str:
     """
     Analyze 13F 13D/G to get institutional holdings data from the last 6 months and return a formatted digest.
     """
-    return holdings.analyze_institutional_holdings(ticker)
+    return holdings.analyze_institutional_holdings_v2(ticker)

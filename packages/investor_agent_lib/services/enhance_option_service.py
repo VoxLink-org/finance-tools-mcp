@@ -34,4 +34,4 @@ def get_key_options(ticker):
     merged_df = merged_df.drop_duplicates(subset='lastTradeDate', keep='first')
     merged_df = merged_df.reset_index(drop=True)
 
-    return merged_df
+    return merged_df.tail(21)
