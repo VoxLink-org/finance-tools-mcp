@@ -31,7 +31,6 @@ def create_mcp_application():
     mcp.add_tool(yfinance_tools.get_price_history)
     mcp.add_tool(yfinance_tools.get_financial_statements)
     mcp.add_tool(yfinance_tools.get_earnings_history)
-    mcp.add_tool(yfinance_tools.get_insider_trades)
     mcp.add_tool(yfinance_tools.get_ticker_news_tool)
 
     # Register option tools
@@ -39,6 +38,7 @@ def create_mcp_application():
 
     # Register holdings analysis tools
     mcp.add_tool(holdings_tools.get_holdings_summary)
+    mcp.add_tool(holdings_tools.get_insider_trades)
 
     # Register CNN Fear & Greed resources and tools
     mcp.resource("cnn://fng/current")(cnn_fng_tools.get_overall_sentiment)

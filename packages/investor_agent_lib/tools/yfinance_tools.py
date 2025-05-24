@@ -5,7 +5,7 @@ from typing import Literal
 import pandas as pd
 from tabulate import tabulate
 
-from packages.investor_agent_lib.services import yfinance_service 
+from packages.investor_agent_lib.services import yfinance_service, finviz_service
 from packages.investor_agent_lib.digests import time_series_digest
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Note: MCP server initialization and registration will happen in server.py
 
 def get_ticker_data(ticker: str) -> str:
-    """Get comprehensive report for ticker: overview, news, metrics, performance, dates, analyst recommendations, and upgrades/downgrades."""
+    """Get comprehensive report for ticker: overview, news, metrics, sector / industry valuation, performance, dates, analyst recommendations, and upgrades/downgrades."""
     try:
         info = yfinance_service.get_ticker_info(ticker)
         if not info:
@@ -45,6 +45,13 @@ def get_ticker_data(ticker: str) -> str:
             ["Short % of Float", f"{info.get('shortPercentOfFloat', 0)*100:.2f}%" if info.get('shortPercentOfFloat') else "N/A"]
         ]
         sections.extend(["\nKEY METRICS", tabulate(metrics, tablefmt="plain")])
+
+        if average:= finviz_service.get_sector_and_industry_valuation(ticker):
+            # use tabulate to format the dict
+            sector_average = [[k, v] for k, v in average['sector_valuation'].items()]
+            industry_average = [[k, v] for k, v in average['industry_valuation'].items()]
+            sections.extend(["\nSECTOR AVERAGE VALUATION", tabulate(sector_average, tablefmt="plain")])
+            sections.extend(["\nINDUSTRY AVERAGE VALUATION", tabulate(industry_average, tablefmt="plain")])
 
         # Performance metrics
         performance = [
@@ -177,12 +184,19 @@ def get_options(
 
 def get_price_history(
     ticker: str,
-    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "6mo"
+    period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "6mo",
+    start_date: str = '',
+    end_date: str  = ''
 ) -> str:
-    """Get historical price data digest for specified period. 
-    Usually get at least 3 months, 6 months or more.
-    It includes OCHLCV samples, Technical Indicators (by ta-lib) , Risk Metrics, and other quantitative analysis.
+    """Get historical price data digest for specified period. There're two kinds of response mode:
+    1. The period mode. It will generate a digest for LLM consumption. Usually get at least 3 months, 6 months or more.
+    The response includes OCHLCV samples, Technical Indicators (by ta-lib) , Risk Metrics, and other quantitative analysis.
+    2. The start_date and end_date mode. Once the start_date (yyyy-mm-dd) and end_date (yyyy-mm-dd) are specified, it will generate a raw OCHLCV data in the slot.
+    And no digest will be generated in this mode. Useful for checking the price history of a specific short date range.
     """
+    if start_date and end_date:
+        return yfinance_service.get_price_slot(ticker, start_date, end_date)
+
     history = yfinance_service.get_price_history(ticker, period, raw=True)
     if history is None or type(history) == str or history.empty:
         return f"No historical data found for {ticker} {history}"

@@ -6,6 +6,9 @@ import os
 import xml.etree.ElementTree as ET
 import requests_cache 
 import bs4
+import pandas as pd
+from packages.investor_agent_lib.utils import cache
+from tabulate import tabulate
 
 import logging
 
@@ -22,7 +25,7 @@ def get_fred_series(series_id):
         # Use the cached session for the FRED API request
         series = fred.get_series(series_id)
 
-        return series.tail(10)
+        return series.tail(16)
 
 def search_fred_series(query):
 
@@ -113,31 +116,32 @@ def breaking_news_feed():
     except Exception as e:
         logger.error(f"Error retrieving bbc news feed: {e}")
 
-    try:
-        response = httpx.get(scmp)
-        root = ET.fromstring(response.text)
+    # try:
+    #     response = httpx.get(scmp)
+    #     root = ET.fromstring(response.text)
         
-        news_items_for_pickup = []
+    #     news_items_for_pickup = []
 
-        for item in root.findall('.//item'):
-            title = item.find('title').text if item.find('title') is not None else 'No title'
-            description = item.find('description').text if item.find('description') is not None else 'No description'
-            pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
+    #     for item in root.findall('.//item'):
+    #         title = item.find('title').text if item.find('title') is not None else 'No title'
+    #         description = item.find('description').text if item.find('description') is not None else 'No description'
+    #         pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
             
-            news_items_for_pickup.append({
-                'title': title,
-                'description': description,
-                'date': pub_date
-            })
+    #         news_items_for_pickup.append({
+    #             'title': title,
+    #             'description': description,
+    #             'date': pub_date
+    #         })
 
-        news_items.append(random.choices(news_items_for_pickup, k=6))
-    except Exception as e:
-        logger.error(f"Error retrieving scmp news feed: {e}")
+    #     news_items.append(random.choices(news_items_for_pickup, k=6))
+    # except Exception as e:
+    #     logger.error(f"Error retrieving scmp news feed: {e}")
         
 
 
     return news_items
 
+@cache.lru_with_ttl(ttl_seconds=3600)
 def cme_fedwatch_tool():
     url = 'https://www.investing.com/central-banks/fed-rate-monitor'
 
@@ -235,3 +239,27 @@ def reddit_stock_post():
 
     random.shuffle(results)
     return results
+
+@cache.lru_with_ttl(ttl_seconds=3600)
+def key_macro_indicators():
+    
+    url = "https://fred.stlouisfed.org/fred-glance-widget.php?series_ids=SP500,DGS10,FEDFUNDS,GDPC1,CPIAUCSL,UNRATE,VIXCLS&transformations=pc1,lin,lin,pc1,pc1,lin,lin"
+    response = httpx.get(url)
+    soup = bs4.BeautifulSoup(response.text, 'html.parser')
+    
+    indicators = []
+    for series_div in soup.find_all('div', class_='fred-glance-series'):
+        anchor = series_div.find('a')
+        text = series_div.text.strip()
+        [name, val] = text.split('\n')
+        indicators.append({
+            'indicator': name,
+            'value': val
+        })
+    return indicators
+    # return tabulate(indicators, headers='keys', tablefmt='simple')
+
+if __name__ == "__main__":
+    print(key_macro_indicators())
+
+

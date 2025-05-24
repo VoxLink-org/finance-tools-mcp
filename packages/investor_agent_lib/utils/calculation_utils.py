@@ -1,7 +1,5 @@
 import math
 import numpy as np
-import talib as ta
-from packages.investor_agent_lib.services.yfinance_service import _price_data_cache
 
 def calc(expression):
     try:

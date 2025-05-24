@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 import random
-from requests import Session
 from typing import Literal
 from datetime import datetime
 
@@ -11,6 +10,8 @@ import yfinance as yf
 import pandas as pd
 import logging
 from curl_cffi import Session as CurlSession
+from packages.investor_agent_lib.utils import cache
+
 
 class ChromeSession(CurlSession):
     def __init__(self, **kwargs):
@@ -32,6 +33,7 @@ session = CachedLimiterSession(
     ignored_parameters=["sessionId", "crumb"]
 )
 
+@cache.lru_with_ttl(ttl_seconds=3600)
 def get_ticker_info(ticker: str) -> dict | None:
     try:
         return yf.Ticker(ticker, session=session).get_info()
@@ -71,8 +73,18 @@ def get_upgrades_downgrades(ticker: str, limit: int = 5) -> pd.DataFrame | None:
         logger.error(f"Error retrieving upgrades/downgrades for {ticker}: {e}")
         return None
 
-# Global dictionary to cache price data
-_price_data_cache = {}
+
+def get_price_slot(
+    ticker: str,
+    start_date: str,
+    end_date: str
+) -> str | None:
+    try:
+        res = yf.Ticker(ticker, session=session).history(start=start_date, end=end_date)
+        return res[['Close', 'High', 'Low', 'Open', 'Volume']].to_markdown(index=False)
+    except Exception as e:
+        logger.error(f"Error retrieving price slot for {ticker}: {e}")
+        return None
 
 def get_price_history(
     ticker: str,
@@ -82,16 +94,6 @@ def get_price_history(
     try:
         res = yf.Ticker(ticker, session=session).history(period=period)
         
-        # Cache the raw price columns before sampling
-        _price_data_cache[ticker] = {
-            'close': res['Close'].values,
-            'high': res['High'].values,
-            'low': res['Low'].values,
-            'open': res['Open'].values,
-            'volume': res['Volume'].values,
-            'dividends': res['Dividends'].values,
-            'date': res.index.values
-        }
         
         if raw:
             return res
@@ -277,9 +279,9 @@ def get_filtered_options(
 
 def get_ticker_news(ticker: str) -> list | None:
     try:
-        news = yf.Ticker(ticker, session=session).news[:10]  # Limit to top 10
-
-        news = random.sample(news, max(5, len(news)))
+        news = yf.Ticker(ticker, session=session).news[-10:]  # Limit to top 10
+        
+        logger.info(f"Retrieved {len(news)} news items for {ticker}")
 
         res = []
 
