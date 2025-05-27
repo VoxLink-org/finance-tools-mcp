@@ -141,7 +141,7 @@ def breaking_news_feed():
 
     return news_items
 
-@cache.lru_with_ttl(ttl_seconds=3600)
+@cache.lru_with_ttl(ttl_seconds=300)
 def cme_fedwatch_tool():
     url = 'https://www.investing.com/central-banks/fed-rate-monitor'
 
@@ -240,7 +240,7 @@ def reddit_stock_post():
     random.shuffle(results)
     return results
 
-@cache.lru_with_ttl(ttl_seconds=3600)
+@cache.lru_with_ttl(ttl_seconds=300)
 def key_macro_indicators():
     
     url = "https://fred.stlouisfed.org/fred-glance-widget.php?series_ids=SP500,DGS10,FEDFUNDS,GDPC1,CPIAUCSL,UNRATE,VIXCLS&transformations=pc1,lin,lin,pc1,pc1,lin,lin"

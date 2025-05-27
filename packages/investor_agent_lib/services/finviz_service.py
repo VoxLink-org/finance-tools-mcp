@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-@cache.lru_with_ttl(ttl_seconds=3600)   
+@cache.lru_with_ttl(ttl_seconds=300)   
 def get_sector_and_industry_valuation(ticker: str) -> dict | None:
     ticker_info = get_ticker_info(ticker)
     if not ticker_info:
@@ -41,7 +41,7 @@ def get_sector_and_industry_valuation(ticker: str) -> dict | None:
         return None
 
 
-@cache.lru_with_ttl(ttl_seconds=3600)
+@cache.lru_with_ttl(ttl_seconds=300)
 def get_insider_trades(ticker: str, limit: int = 30) -> pd.DataFrame | None:
     try:
         url = f'https://finviz.com/quote.ashx?t={ticker}&p=d'

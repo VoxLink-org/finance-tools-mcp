@@ -33,7 +33,7 @@ session = CachedLimiterSession(
     ignored_parameters=["sessionId", "crumb"]
 )
 
-@cache.lru_with_ttl(ttl_seconds=3600)
+@cache.lru_with_ttl(ttl_seconds=300)
 def get_ticker_info(ticker: str) -> dict | None:
     try:
         return yf.Ticker(ticker, session=session).get_info()

@@ -6,7 +6,7 @@ import packages.investor_agent_lib.services.yfinance_service as yf
 from packages.investor_agent_lib.utils import cache
 
 
-@cache.lru_with_ttl(ttl_seconds=3600)   
+@cache.lru_with_ttl(ttl_seconds=300)   
 def get_digest_from_fintel(ticker: str):
     url = f'https://fintel.io/card/activists/us/{ticker}'
     response = curl_cffi.get(url, impersonate="chrome")
