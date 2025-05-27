@@ -49,5 +49,12 @@ def analyze_institutional_holdings_v2(ticker: str) -> str:
 """
 
 
+def get_top25_holder(ticker: str) -> str:
+    df = institution_service.get_whalewisdom_holdings(ticker)
+    return f"""
+=============Top 25 Holders============
+{df[["name", "current_shares", "position_change_type", "source_date", "shares_change", "percent_change_in_%"]].to_markdown(index=False)}
+"""
+
 if __name__ == '__main__':
-    print(analyze_institutional_holdings_v2('nbis'))
+    print(get_top25_holder('nbis'))

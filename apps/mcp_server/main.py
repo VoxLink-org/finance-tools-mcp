@@ -37,7 +37,7 @@ def create_mcp_application():
     mcp.add_tool(option_tools.super_option_tool)
 
     # Register holdings analysis tools
-    mcp.add_tool(holdings_tools.get_holdings_summary)
+    mcp.add_tool(holdings_tools.get_top25_holders)
     mcp.add_tool(holdings_tools.get_insider_trades)
 
     # Register CNN Fear & Greed resources and tools
@@ -51,12 +51,15 @@ def create_mcp_application():
     # Register calculation tools
     mcp.add_tool(calculation_tools.calculate)
 
-    # Register macro tools
+    # Register macro tools and resources
     mcp.add_tool(macro_tools.get_current_time)
     mcp.add_tool(macro_tools.get_fred_series)
     mcp.add_tool(macro_tools.search_fred_series)
     mcp.add_tool(macro_tools.cnbc_news_feed)
     mcp.add_tool(macro_tools.social_media_feed)
+
+    mcp.resource("time://now")(macro_tools.get_current_time)
+    mcp.resource("cnbc://news")(macro_tools.cnbc_news_feed)
 
     # Register prompts
     mcp.prompt()(prompts.chacteristics)

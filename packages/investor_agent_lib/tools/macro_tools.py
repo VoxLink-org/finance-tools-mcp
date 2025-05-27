@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def get_current_time() -> str:
     """Get the current time in ISO 8601 format."""
     now = datetime.now()
-    return now.isoformat()
+    return f"Today is {now.isoformat()}"
 
 def get_fred_series(series_id):
     """Get a FRED series by its ID. However the data is not always the latest, so use with caution!!!"""
