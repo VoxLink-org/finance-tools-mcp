@@ -1,4 +1,5 @@
 import datetime
+import re
 import pandas as pd
 import bs4
 import curl_cffi
@@ -72,8 +73,14 @@ def get_whalewisdom_stock_code(ticker: str) -> str:
     data = response.json()
     if not data or not isinstance(data, list):
         raise ValueError(f"No results found for ticker: {ticker}")
-        
-    return data[0]['id']
+    target = None
+    for item in data:
+        match = re.search(rf"{displayName}", item['label'], re.IGNORECASE)
+        if match:
+            print(item)
+            target = item['id']
+            break
+    return target
 
 @cache.lru_with_ttl(ttl_seconds=300)   
 def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
@@ -92,7 +99,7 @@ def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
     """
     code = get_whalewisdom_stock_code(ticker)
     print(code)
-    url = f'https://whalewisdom.com/stock/holdings?id={code}&q1=-1&change_filter=&mv_range=&perc_range=&rank_range=0:100&sc=true&sort=current_shares&order=desc&offset=0&limit=25'
+    url = f'https://whalewisdom.com/stock/holdings?id={code}&q1=-1&change_filter=&mv_range=&perc_range=&rank_range=&sc=true&sort=current_shares&order=desc&offset=0&limit=25'
     response = curl_cffi.get(url, impersonate="chrome", headers={
         "accept": "application/json, text/plain, */*",
         "accept-encoding": "gzip, deflate, br",
@@ -130,5 +137,5 @@ def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
 
 
 if __name__ == '__main__':
-    df = get_whalewisdom_holdings('NBIS')
+    df = get_whalewisdom_holdings('nbis')
     print(df)
