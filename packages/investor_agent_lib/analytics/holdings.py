@@ -57,4 +57,4 @@ def get_top25_holder(ticker: str) -> str:
 """
 
 if __name__ == '__main__':
-    print(get_top25_holder('nbis'))
+    print(get_top25_holder('googl'))

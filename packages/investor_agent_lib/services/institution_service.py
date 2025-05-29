@@ -53,7 +53,10 @@ def get_whalewisdom_stock_code(ticker: str) -> str:
         raise ValueError("Ticker cannot be empty")
         
     # find by company name
-    displayName = yf.get_ticker_info(ticker)['displayName']
+    info = yf.get_ticker_info(ticker)
+    displayName = info.get('displayName', ticker)
+    print(displayName)
+
 
     url = f'https://whalewisdom.com/search/filer_stock_autocomplete2?filer_restrictions=3&term={displayName}'
     # with requests_cache.enabled('whalewisdom', backend=requests_cache.SQLiteCache(':memory:'), expire_after=3600):
@@ -74,6 +77,7 @@ def get_whalewisdom_stock_code(ticker: str) -> str:
     if not data or not isinstance(data, list):
         raise ValueError(f"No results found for ticker: {ticker}")
     target = None
+    print(data)
     for item in data:
         match = re.search(rf"{displayName}", item['label'], re.IGNORECASE)
         if match:
