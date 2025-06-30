@@ -64,9 +64,9 @@ def get_data(p: Literal[ "1mo","1y", "2y", "5y", "10y", "ytd"]=period):
 
     data = pd.merge(spy_data, vix_data[['VIX_Close']], left_index=True, right_index=True, how='inner')
 
-    print(spy_data.head())
-    print(vix_data.head())
-    print(data.head())
+    print(spy_data.tail())
+    print(vix_data.tail())
+    print(data.tail())
 
     return data
 

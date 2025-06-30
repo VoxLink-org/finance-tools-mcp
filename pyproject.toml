@@ -45,6 +45,7 @@ full = [
 finance-tools-mcp = "apps.mcp_server.cli:main"
 data_sync_worker_cli = "apps.data_sync_worker.cli:main"
 cli_tool_train = "apps.cli_tool.train:main"
+cli_tool_predict = "apps.cli_tool.predict:main"
 
 # If the 'test' script from the original pyproject.toml is still relevant and
 # assuming option_analyze_v2.py is moved to packages/investor_agent_lib/:
