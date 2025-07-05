@@ -58,8 +58,7 @@ def option_snapshot_pipeline(tickers: List[str]):
     total_tickers = len(tickers)
     best_tickers_count = len(best_tickers)
     
-    create_markdown_artifact(
-        markdown=f"""
+    markdown = f"""
         # Market Summary
 
         - Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -67,7 +66,11 @@ def option_snapshot_pipeline(tickers: List[str]):
         - Tickers at 30-day high: {best_tickers_count}
         - Percentage: {best_tickers_count / total_tickers:.2%}
         - Tickers: {'\n '.join(best_tickers)}
-        """,
+
+        """
+
+    create_markdown_artifact(
+        markdown=markdown,
         description="## Market Summary",
     )
 
