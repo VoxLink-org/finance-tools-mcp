@@ -2,7 +2,7 @@ from datetime import  datetime
 from prefect import serve
 from prefect.schedules import Cron
 import datetime
-from apps.data_sync_worker.pipeline import option_snapshot_pipeline, option_indicator_pipeline, best_30days_task
+from apps.data_sync_worker.pipeline import option_snapshot_pipeline, option_indicator_pipeline, best_30days_pipeline
 from apps.data_sync_worker import get_ticker_pool
 
 def main():
@@ -28,7 +28,7 @@ def main():
         parameters={"tickers": tickers},
     )
 
-    f3 = best_30days_task.to_deployment(
+    f3 = best_30days_pipeline.to_deployment(
         name="best_30days_pipeline",
         schedule=schedule,
         parameters={"tickers": tickers},
