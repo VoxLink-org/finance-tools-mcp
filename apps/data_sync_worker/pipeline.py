@@ -1,14 +1,13 @@
-from datetime import datetime
-import time
+from datetime import datetime, time
 from typing import List
+from venv import logger
 from prefect import task, flow, get_run_logger
 from prefect.task_runners import ConcurrentTaskRunner
 from prefect.artifacts import create_link_artifact, create_markdown_artifact
 
-from apps.data_sync_worker import get_ticker_pool
+from apps.data_sync_worker import best_30days_task
 import apps.data_sync_worker.option_snapshot_task as option_snapshot_task 
 import apps.data_sync_worker.option_indicator_task as option_indicator_task
-import apps.data_sync_worker.best_30days_task as best_30days_task
 
 @flow(task_runner=ConcurrentTaskRunner())
 def option_snapshot_pipeline(tickers: List[str]):
@@ -45,33 +44,10 @@ def option_snapshot_pipeline(tickers: List[str]):
         else:
             logger.error(f"Failed to save data for {ticker}")
 
-    best_tickers = []
-    for i, ticker in enumerate(tickers):
-        if i > 0 and i % 10 == 0:
-            logger.info("Sleeping for 10 second to avoid rate limiting")
-            time.sleep(10)
-        
-        result = best_30days_task.get_best_30days_task(ticker)
-        if result:
-            best_tickers.append(ticker)
-
-    total_tickers = len(tickers)
-    best_tickers_count = len(best_tickers)
-    
-    tickers_str = "\n ".join(best_tickers)
-    markdown = f"""
-        # Market Summary
-
-        - Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-        - Total tickers: {total_tickers}
-        - Tickers at 30-day high: {best_tickers_count}
-        - Percentage: {best_tickers_count / total_tickers:.2%}
-        - Tickers: {tickers_str}
-"""
-    
-    create_markdown_artifact(
-        markdown=markdown,
-        description="## Market Summary",
+    create_link_artifact(
+        key="options-snapshot",
+        link="https://prefect.findata-be.uk/link_artifact/options_data.db",
+        description="## Highly variable data",
     )
 
 
@@ -113,13 +89,46 @@ def option_indicator_pipeline(tickers: List[str]):
         description="## Highly variable data",
     )
 
+@flow(task_runner=ConcurrentTaskRunner())
+def best_30days_pipeline(tickers: List[str]):
+    """get best 30days data"""
+    best_tickers = []
+    for i, ticker in enumerate(tickers):
+        if i > 0 and i % 10 == 0:
+            logger.info("Sleeping for 10 second to avoid rate limiting")
+            time.sleep(10)
+        
+        result = best_30days_task.get_best_30days_task(ticker)
+        if result:
+            best_tickers.append(ticker)
+
+    total_tickers = len(tickers)
+    best_tickers_count = len(best_tickers)
+    
+    tickers_str = "\n".join(best_tickers)
+    markdown = f"""
+# Market Summary
+
+- Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- Total tickers: {total_tickers}
+- Tickers at 30-day high: {best_tickers_count}
+- Percentage: {best_tickers_count / total_tickers:.2%}
+- Tickers at 30-day high: 
+
+{tickers_str}
+"""
+    print(markdown)
+
+    create_markdown_artifact(
+        markdown=markdown,
+        description="## Market Summary",
+    )
+
+    
+
 
 def main():
-    tickers =get_ticker_pool.get_ticker_pool()
-    # remove duplicates
-    tickers = list(set(tickers))
-
-    option_snapshot_pipeline(tickers)
+    best_30days_pipeline(["AAPL","QQQ"])
 
 
 
