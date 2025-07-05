@@ -66,9 +66,8 @@ def option_snapshot_pipeline(tickers: List[str]):
         - Tickers at 30-day high: {best_tickers_count}
         - Percentage: {best_tickers_count / total_tickers:.2%}
         - Tickers: {'\n '.join(best_tickers)}
-
-        """
-
+"""
+    
     create_markdown_artifact(
         markdown=markdown,
         description="## Market Summary",
