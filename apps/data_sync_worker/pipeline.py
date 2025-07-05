@@ -1,4 +1,5 @@
-from datetime import datetime, time
+from datetime import datetime
+import time
 from typing import List
 from venv import logger
 from prefect import task, flow, get_run_logger
