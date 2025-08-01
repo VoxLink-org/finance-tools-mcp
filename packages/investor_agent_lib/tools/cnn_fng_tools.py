@@ -164,7 +164,7 @@ async def get_historical_fng_tool(days: int) -> str:
 
         # Limit to the requested number of days
         # Note: The API may not provide data for every day
-        limited_history = history[:min(days, len(history))]
+        limited_history = history[-min(days, len(history)):]
 
         # Format historical data
         lines = [f"Historical CNN Fear & Greed Index (Last {len(limited_history)} days):"]
@@ -218,7 +218,7 @@ async def analyze_fng_trend(days: int) -> str:
             return "No historical data available for trend analysis."
 
         # Limit to the requested number of days
-        limited_history = history[:min(days, len(history))]
+        limited_history = history[-min(days, len(history)):]
 
         # Calculate statistics
         scores = [int(entry.get("score", 0)) for entry in limited_history if "score" in entry]
