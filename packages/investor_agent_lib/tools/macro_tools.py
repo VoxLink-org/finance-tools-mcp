@@ -27,19 +27,21 @@ def cnbc_news_feed():
     fred_watch_news = {
         "title": "Real Time Fed Rate Monitor: The most precise fed rate monitor based on CME Group 30-Day Fed Fund futures prices",
         "description": f"Fed rate prediction:\n {macro_service.cme_fedwatch_tool()}",
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "date": datetime.now().strftime("%Y-%m-%d")
     }
     key_indicators = {
         "title": "Key Macro Indicators from stlouisfed.org",
         "description": f"{macro_service.key_macro_indicators()}",
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "date": datetime.now().strftime("%Y-%m-%d")
     }
     news.append(fred_watch_news)
     news.append(key_indicators)
     return news
 
-def social_media_feed():
-    """Get most discussed stocks and investments opinions from social media. Useful to know what investors are talking about. """
-    news = macro_service.reddit_stock_post()
+def social_media_feed(keywords: list[str] = None):
+    """Get most discussed stocks and investments opinions from reddit. Useful to know what investors are talking about. 
+    keywords is optional. Set keywords to match the specific topic you are interested in, by 'OR' operator, e.g. ['tsla', 'tesla'],  ['tesla', 'spacex'], ['AAPL', 'apple', 'tim cook', 'cook']
+    No keywords will return the most discussed stocks and investments. """
+    news = macro_service.reddit_stock_post(keywords)
     return news
 

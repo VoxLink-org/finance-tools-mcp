@@ -104,6 +104,7 @@ async def get_overall_sentiment_tool() -> str:
     data = await cnn_fng_service.fetch_fng_data()
     market_rsi = market_health.get_market_rsi()
     market_vix = market_health.get_market_vix()
+    market_chg = market_health.get_market_chg()
 
     if not data:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
@@ -125,12 +126,13 @@ async def get_overall_sentiment_tool() -> str:
 
         # Construct output with proper formatting
         result = (
-            f"CNN Fear & Greed Index (as of {date_str}):\n"  # Escaped newline
+            f"CNN Fear & Greed Index & Market Sentiment (as of {date_str}):\n"  # Escaped newline
             f"Score: {current_score}\n"  # Escaped newline
             f"CNN Rating: {current_rating}\n"  # Escaped newline
             f"Classification: {score_classification}\n"
             f"{market_rsi}\n"
-            f"{market_vix}"
+            f"{market_vix}\n"
+            f"{market_chg}"
         )
         return result
     except Exception as e:

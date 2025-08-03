@@ -125,3 +125,20 @@ def get_market_vix():
         f"- Monthly Range:  {month_low:.2f} ~ {month_high:.2f}\n"
         f"- Market Sentiment: {sentiment}"
     )
+
+def get_market_chg():
+    spy_price = yfinance_service.get_price_history('SPY', period='5d', raw=True)
+    qqq_price = yfinance_service.get_price_history('QQQ', period='5d', raw=True)
+    
+    
+    spy_chg_5d = (spy_price['Close'][-1] - spy_price['Close'][0]) / spy_price['Close'][0]
+    qqq_chg_5d = (qqq_price['Close'][-1] - qqq_price['Close'][0]) / qqq_price['Close'][0]
+    spy_chg_1d = (spy_price['Close'][-1] - spy_price['Close'][-2]) / spy_price['Close'][-2]
+    qqq_chg_1d = (qqq_price['Close'][-1] - qqq_price['Close'][-2]) / qqq_price['Close'][-2]
+    
+    return (
+        f"Market Change Analysis:\n"
+        f"- SPY: 5-day change: {spy_chg_5d:.2%}, 1-day change: {spy_chg_1d:.2%}\n"
+        f"- QQQ: 5-day change: {qqq_chg_5d:.2%}, 1-day change: {qqq_chg_1d:.2%}"
+    )
+

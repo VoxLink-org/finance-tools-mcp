@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import random
 import fredapi as fr
@@ -198,45 +199,57 @@ def cme_fedwatch_tool():
         logger.error(f"Error retrieving fed watch: {e}")
 
 
-def reddit_stock_post():
+@cache.lru_with_ttl(ttl_seconds=300)
+def get_rss(url):
+    results = []
+    try:
+        response = httpx.get(url)
+        root = bs4.BeautifulSoup(response.text, 'xml')
+        entries = root.find_all('entry')
+        for entry in entries:
+            content_html = entry.content.text if entry.content else ''
+            content_text = bs4.BeautifulSoup(content_html, 'html.parser').get_text()
+            content_words = content_text.split()
+            if content_text.find('This post contains content not supported on old Reddit') != -1:
+                continue
+            if len(content_words) < 20:
+                continue
+
+            results.append({
+                'title': entry.title.text if entry.title else '',
+                'content': ' '.join(content_words[:100] + ['...']) if len(content_words) > 100 else content_text,
+                'updated': '{:%Y-%m-%d}'.format(datetime.fromisoformat(entry.updated.text)) if entry.updated else ''
+            })
+        
+        
+    except Exception as e:
+        logger.error(f"Error retrieving reddit stock post: {e}")
+    return results
+
+def reddit_stock_post(keywords: list = None):
     
     
-
-    def get_rss(url):
-        results = []
-        try:
-            response = httpx.get(url)
-            root = bs4.BeautifulSoup(response.text, 'xml')
-            entries = root.find_all('entry')
-            for entry in entries:
-                content_html = entry.content.text if entry.content else ''
-                content_text = bs4.BeautifulSoup(content_html, 'html.parser').get_text()
-                content_words = content_text.split()
-                if content_text.find('This post contains content not supported on old Reddit') != -1:
-                    continue
-                if len(content_words) < 20:
-                    continue
-
-                results.append({
-                    'title': entry.title.text if entry.title else '',
-                    'content': ' '.join(content_words[:100] + ['...']) if len(content_words) > 100 else content_text,
-                    'updated': entry.updated.text if entry.updated else ''
-                })
-            
-            
-        except Exception as e:
-            logger.error(f"Error retrieving reddit stock post: {e}")
-        return results
-
     url1 = 'https://www.reddit.com/r/stocks/.rss'
 
     url2 = "https://www.reddit.com/r/wallstreetbets/.rss"
 
+    url3 = "https://www.reddit.com/r/investing/.rss"
+
     r1 = get_rss(url1)
     r2 = get_rss(url2)
+    r3 = get_rss(url3)
 
-    results = random.choices(r1, k=14) + random.choices(r2, k=7)
-
+    if keywords and len(keywords) > 0:
+        r4 = get_rss('https://www.reddit.com/r/StockMarket/.rss')
+        r5 = get_rss('https://www.reddit.com/r/robinhood/.rss')
+        r6 = get_rss('https://www.reddit.com/r/Options/.rss')
+        # Filter by keywords, 'or' algorithm
+        combined_results = r1 + r2 + r3 + r4 + r5 + r6
+        filtered_results = [result for result in combined_results if any(keyword.lower() in (result['title'].lower() + result['content'].lower()) for keyword in keywords)]
+        print(f"Filtered results: {len(filtered_results)} out of {len(combined_results)} with keywords: {keywords}")
+        return filtered_results
+    
+    results = random.choices(r1, k=14) + random.choices(r2, k=7) + random.choices(r3, k=7)
     random.shuffle(results)
     return results
 
