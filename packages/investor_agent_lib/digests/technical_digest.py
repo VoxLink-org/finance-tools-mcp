@@ -14,7 +14,7 @@ def get_tendency_of_last_n_days(series: np.ndarray, n: int = 20) -> tuple[str, i
         
     Returns:
         tuple[str, int, int]: A tuple containing:
-            - slope (str): The slope of the linear regression line for the last 20 days.
+            - trend (str): The trend description for the last 20 days.
             - up_count (int): The number of days the price moved upward in the last 20 days.
             - down_count (int): The number of days the price moved downward in the last 20 days.
     """
@@ -28,7 +28,7 @@ def get_tendency_of_last_n_days(series: np.ndarray, n: int = 20) -> tuple[str, i
     
     # Normalize slope by average price
     avg_price = np.mean(last_n)
-    normalized_slope = slope / avg_price
+    normalized_slope = slope / abs(avg_price) if avg_price != 0 else 0
     
     # Calculate up and down counts
     price_changes = np.diff(last_n)
@@ -69,8 +69,8 @@ def tech_indicators(time_series_data: pd.DataFrame) -> str:
     def get_tendency(data):
         if len(data) < 20:
             return np.nan, np.nan, np.nan
-        slope, up_count, down_count = get_tendency_of_last_n_days(data[-20:])
-        return slope, up_count, down_count
+        trend, up_count, down_count = get_tendency_of_last_n_days(data[-20:])
+        return trend, up_count, down_count
     
     indicators = {
         'Trend': {
@@ -98,7 +98,6 @@ def tech_indicators(time_series_data: pd.DataFrame) -> str:
             'CMF 20': ta.ADOSC(highs, lows, closes, volumes, fastperiod=3, slowperiod=10)[-1] if len(closes) >= 10 else np.nan
         }
     }
-    
     # Get tendencies for each indicator
     tendencies = {
         'Trend': {
