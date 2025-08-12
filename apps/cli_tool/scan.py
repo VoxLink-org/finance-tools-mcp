@@ -1,6 +1,6 @@
 from typing import Literal
 from packages.investor_agent_lib.services import yfinance_service
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 from tabulate import tabulate
 import pandas as pd
 import math

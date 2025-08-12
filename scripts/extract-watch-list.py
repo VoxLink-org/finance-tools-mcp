@@ -1,6 +1,6 @@
 import json
 import yaml
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 
 
 def main():

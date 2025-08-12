@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import talib as ta
 import xgboost as xgb
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from imblearn.under_sampling import RandomUnderSampler

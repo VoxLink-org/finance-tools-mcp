@@ -1,7 +1,7 @@
 import pickle
 import pandas as pd
 import xgboost as xgb
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 from apps.cli_tool.train import get_data, feature_engineering
 
 

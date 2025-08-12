@@ -5,7 +5,7 @@ from prefect import task, flow, get_run_logger
 
 from packages.investor_agent_lib.options import option_indicators  
 
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 
 db_path = DATA_DIR / "options_indicator.db"
 table_name = "options_indicator"

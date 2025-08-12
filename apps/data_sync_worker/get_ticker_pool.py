@@ -3,7 +3,7 @@ from typing import List
 import logging
 import bs4
 import httpx
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

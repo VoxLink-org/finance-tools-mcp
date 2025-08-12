@@ -7,7 +7,7 @@ from prefect import task, flow, get_run_logger
 
 from packages.investor_agent_lib.options import option_selection
 
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 
 db_path =  DATA_DIR / "options_data.db"
 table_name = "options"

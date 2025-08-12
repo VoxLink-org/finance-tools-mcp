@@ -5,7 +5,7 @@ from prefect import task, flow, get_run_logger
 
 from packages.investor_agent_lib.services.yfinance_service import get_price_history
 
-from config.paths import DATA_DIR
+from config.my_paths import DATA_DIR
 
 
 @task(name="get-best-30days-data")
