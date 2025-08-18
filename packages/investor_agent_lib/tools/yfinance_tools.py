@@ -203,8 +203,13 @@ def get_price_history(
 
     digest_mode = True
     if digest_mode:
-        return time_series_digest.generate_time_series_digest_for_LLM(history)
+        ta_digest = time_series_digest.generate_time_series_digest_for_LLM(history)
+        last_250_days_data = yfinance_service.get_price_history(ticker, '1y', raw=True)
+        ta_signal_rate_digest = time_series_digest.generate_signal_success_rate_digest_for_LLM(last_250_days_data)
 
+        return (f"PRICE HISTORY FOR {ticker} ({period}):\n" +
+                ta_signal_rate_digest + "\n" +
+                ta_digest)
 
     price_data = [
         [

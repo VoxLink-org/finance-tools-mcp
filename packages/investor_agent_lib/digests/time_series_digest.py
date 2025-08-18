@@ -8,6 +8,7 @@ from packages.investor_agent_lib.analytics.time_series import calculate_time_ser
 from packages.investor_agent_lib.analytics.statistics import calculate_basic_statistics
 from packages.investor_agent_lib.analytics.risk import cal_risk
 from packages.investor_agent_lib.digests.technical_digest import tech_indicators
+from packages.investor_agent_lib.digests.technical_sucessful_rate import calculate_technical_success_rate
 
 logger = logging.getLogger(__name__)
 
@@ -129,3 +130,17 @@ def generate_time_series_digest_for_LLM(time_series_data: pd.DataFrame) -> str:
 ===== END OF DIGEST =====
 """
 
+
+def generate_signal_success_rate_digest_for_LLM(last_250_days_data: pd.DataFrame) -> str:
+    real_days = last_250_days_data.shape[0]
+    forward_days = 10
+    success_table = calculate_technical_success_rate(last_250_days_data, look_forward_period=forward_days)
+
+    return f"""
+===== SIGNAL SUCCESS RATE DIGEST =====
+Period: Last {real_days} days
+Success Standard: 信号出现后{forward_days}个交易日内的价格表现
+{success_table}
+
+===== END OF DIGEST =====
+"""
