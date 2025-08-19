@@ -18,7 +18,7 @@ def main():
     parser.add_argument(
         "--transport",
         type=str,
-        choices=["stdio", "sse"],
+        choices=["stdio", "sse", "streamable-http"],
         default="stdio",
         help="Transport protocol to use (stdio or sse)",
     )
@@ -32,3 +32,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

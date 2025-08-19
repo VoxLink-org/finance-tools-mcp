@@ -1,0 +1,1 @@
+uv run finance-tools-mcp --transport=sse

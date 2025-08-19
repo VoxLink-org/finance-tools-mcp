@@ -17,6 +17,26 @@ logger = logging.getLogger(__name__)
 
 FRED_API_KEY = os.environ.get('FRED_API_KEY', "7fbed707a5c577c168c8610e8942d0d9")
 
+def format_rss_date(date_string):
+    """
+    Format RSS date string to only keep the date part.
+    
+    Args:
+        date_string (str): Date string in RSS format (e.g., "Wed, 01 Jan 2020 12:00:00 GMT")
+        
+    Returns:
+        str: Formatted date string (e.g., "2020-01-01") or original string if parsing fails
+    """
+    try:
+        # Parse RSS date format and extract only date portion
+        parsed_date = datetime.strptime(date_string, '%a, %d %b %Y %H:%M:%S GMT')
+        return parsed_date.strftime('%Y-%m-%d')
+    except ValueError as e:
+        print(e)
+        print(f"Failed to parse date: {date_string}")
+        # If parsing fails, keep original date string
+        return date_string
+    
 def get_fred_series(series_id):
 
     fred = fr.Fred(api_key=FRED_API_KEY)
@@ -85,7 +105,7 @@ def breaking_news_feed():
             news_items_for_pickup.append({
                 'title': title,
                 'description': description,
-                'date': pub_date
+                'date': format_rss_date(pub_date)
             })
         
         news_items.append(news_items_for_pickup) 
@@ -93,29 +113,29 @@ def breaking_news_feed():
     except Exception as e:
         logger.error(f"Error retrieving cnbc news feed: {e}")
 
-    try:        
-        # 补充bbc
-        response = httpx.get(bbc)
-        root = ET.fromstring(response.text)
+    # try:        
+    #     # 补充bbc
+    #     response = httpx.get(bbc)
+    #     root = ET.fromstring(response.text)
         
-        news_items_for_pickup = []
+    #     news_items_for_pickup = []
 
 
-        for item in root.findall('.//item'):
-            title = item.find('title').text if item.find('title') is not None else 'No title'
-            description = item.find('description').text if item.find('description') is not None else 'No description'
-            pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
+    #     for item in root.findall('.//item'):
+    #         title = item.find('title').text if item.find('title') is not None else 'No title'
+    #         description = item.find('description').text if item.find('description') is not None else 'No description'
+    #         pub_date = item.find('pubDate').text if item.find('pubDate') is not None else 'No date'
             
-            news_items_for_pickup.append({
-                'title': title,
-                'description': description,
-                'date': pub_date
-            })
+    #         news_items_for_pickup.append({
+    #             'title': title,
+    #             'description': description,
+    #             'date': format_rss_date(pub_date)
+    #         })
         
-        news_items.append(random.choices(news_items_for_pickup, k=6))
+    #     news_items.append(random.choices(news_items_for_pickup, k=6))
 
-    except Exception as e:
-        logger.error(f"Error retrieving bbc news feed: {e}")
+    # except Exception as e:
+    #     logger.error(f"Error retrieving bbc news feed: {e}")
 
     # try:
     #     response = httpx.get(scmp)

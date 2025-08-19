@@ -1,6 +1,6 @@
 [project]
 name = "finance-tools-mcp"
-version = "0.1.5"
+version = "0.1.6"
 description = "A Model Context Protocol server for a collection of financial tools, https://github.com/VoxLink-org/finance-tools-mcp, modified from [investor-agent](https://github.com/ferdousbhai/investor-agent)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -9,7 +9,6 @@ dependencies = [
     "fredapi>=0.5.2",
     "httpx>=0.28.1",
     "lxml>=5.4.0",
-    "mcp[cli]>=1.2.1",
     "pyrate-limiter>=2.10.0",
     "requests-cache>=1.2.1",
     "requests-ratelimiter>=0.7.0",
@@ -18,6 +17,7 @@ dependencies = [
     "yfinance[nospam]==0.2.58",
     "scipy>=1.15.3",
     "html5lib>=1.1",
+    "mcp[cli]>=1.13.0",
 ]
 authors = [
     { name = "wanghsinche", email = "wanghsinche@hotmail.com" }

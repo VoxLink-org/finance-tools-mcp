@@ -191,8 +191,8 @@ def calculate_fibonacci_retracement(time_series_data: pd.DataFrame) -> str:
         "levels": [f"{k}: {v:.2f}" for k, v in levels.items()],
         "current_price": level_position,
         "trend": trend,
-        "swing_high": f"{highs[swing_high_idx]:.2f} on {dates[swing_high_idx]}",
-        "swing_low": f"{lows[swing_low_idx]:.2f} on {dates[swing_low_idx]}"
+        "swing_high": f"{dates[swing_high_idx].date()}",
+        "swing_low": f"{dates[swing_low_idx].date()}"
     }
     text = ''
     for k, v in rows.items():

@@ -22,7 +22,7 @@ def search_fred_series(query):
     return macro_service.search_fred_series(query)
 
 def cnbc_news_feed():
-    """Get the latest breaking world news from CNBC, BBC, and SCMP. Useful to have an overview for the day. Include the Fed rate prediction from Fed watch and key macro indicators. """
+    """Get the latest breaking stock market news from CNBC. Useful to have an overview for the day. Include the Fed rate prediction from Fed watch and key macro indicators. """
     news = macro_service.breaking_news_feed()
     fred_watch_news = {
         "title": "Real Time Fed Rate Monitor: The most precise fed rate monitor based on CME Group 30-Day Fed Fund futures prices",
@@ -34,8 +34,8 @@ def cnbc_news_feed():
         "description": f"{macro_service.key_macro_indicators()}",
         "date": datetime.now().strftime("%Y-%m-%d")
     }
-    news.append(fred_watch_news)
-    news.append(key_indicators)
+    news.insert(0, fred_watch_news)
+    news.insert(1, key_indicators)
     return news
 
 def social_media_feed(keywords: list[str] = None):

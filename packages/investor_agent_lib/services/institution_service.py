@@ -6,6 +6,28 @@ import curl_cffi
 import packages.investor_agent_lib.services.yfinance_service as yf
 from packages.investor_agent_lib.utils import cache
 
+def format_shares(mynum: float) -> str:
+    """
+    Format share numbers into human-readable strings with appropriate suffixes.
+    
+    Args:
+        shares: Number of shares as a float
+        
+    Returns:
+        Formatted string with B (billions), M (millions), K (thousands) suffixes
+        or plain number if less than 1000. Handles negative numbers appropriately.
+    """
+    sign = "-" if mynum < 0 else ""
+    mynum = abs(mynum)
+    if mynum >= 1e9:
+        return f"{sign}{mynum/1e9:.2f}B"
+    elif mynum >= 1e6:
+        return f"{sign}{mynum/1e6:.2f}M"
+    elif mynum >= 1e3:
+        return f"{sign}{mynum/1e3:.2f}K"
+    else:
+        return f"{sign}{mynum:.2f}"
+
 
 @cache.lru_with_ttl(ttl_seconds=300)   
 def get_digest_from_fintel(ticker: str):
@@ -131,9 +153,12 @@ def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
     # pick up the cols of interest
     df = pd.DataFrame(holdings)[['name', 'current_shares', 'position_change_type', 'percent_change', 'source_date', 'filing_date', 'shares_change']]
     # sort by position_change_type
-    df['source_date'] = pd.to_datetime(df['source_date'])
+    df['source_date'] = pd.to_datetime(df['source_date']).dt.date
     df["current_shares"] = pd.to_numeric(df["current_shares"], errors='coerce')
-    df["percent_change_in_%"] = pd.to_numeric(df["percent_change"], errors='coerce')
+
+    df["current_shares"] = df["current_shares"].apply(format_shares)
+    df['shares_change'] = pd.to_numeric(df['shares_change'], errors='coerce').apply(format_shares)
+    df["percent_change_in_%"] = pd.to_numeric(df["percent_change"], errors='coerce').apply(lambda x: round(x, 2))
     df = df.sort_values(by='current_shares', ascending=False)
     return df
 

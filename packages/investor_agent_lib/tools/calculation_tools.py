@@ -10,14 +10,10 @@ logger = logging.getLogger(__name__)
 
 def calculate(expression: str) -> str:
     """Calculate the result of a mathematical expression. Support python math syntax and numpy.
-        > calculate("2 * 3 + 4")
-        {'result': 10}
-        > calculate("sin(pi/2)")
-        {'result': 1.0}
-        > calculate("sqrt(16)")
-        {'result': 4.0}
-        > calculate("np.mean([1, 2, 3])")
-        {'result': 2.0}
+    > "2 * 3 + 4"
+    > "sin(pi/2)"
+    > "sqrt(16)"
+    > "np.mean([1, 2, 3])"
     """
     return calculation_utils.calc(expression)
 
