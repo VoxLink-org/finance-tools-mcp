@@ -12,6 +12,7 @@ from packages.investor_agent_lib.tools import cnn_fng_tools
 from packages.investor_agent_lib.tools import calculation_tools
 from packages.investor_agent_lib.tools import macro_tools
 from packages.investor_agent_lib.tools import option_tools
+from packages.investor_agent_lib.tools import predict_tools
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,9 @@ def create_mcp_application():
 
     # Register option tools
     mcp.add_tool(option_tools.super_option_tool)
+
+    # Register prediction tools
+    mcp.add_tool(predict_tools.get_next_day_prediction)
 
     # Register holdings analysis tools
     mcp.add_tool(holdings_tools.get_top25_holders)
