@@ -608,7 +608,7 @@ wheels = [
 
 [[package]]
 name = "finance-tools-mcp"
-version = "0.1.6"
+version = "0.1.7"
 source = { editable = "." }
 dependencies = [
     { name = "curl-cffi" },
