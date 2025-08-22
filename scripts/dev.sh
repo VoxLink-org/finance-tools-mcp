@@ -1,1 +1,1 @@
-uv run finance-tools-mcp --transport=sse
+find packages -name "*.py" | entr -r uv run finance-tools-mcp --transport=sse

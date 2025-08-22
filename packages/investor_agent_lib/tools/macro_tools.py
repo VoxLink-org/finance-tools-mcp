@@ -26,7 +26,7 @@ def cnbc_news_feed():
     news = macro_service.breaking_news_feed()
     fred_watch_news = {
         "title": "Real Time Fed Rate Monitor: The most precise fed rate monitor based on CME Group 30-Day Fed Fund futures prices",
-        "description": f"Fed rate prediction:\n {macro_service.cme_fedwatch_tool()}",
+        "description": f"{macro_service.cme_fedwatch_tool()}",
         "date": datetime.now().strftime("%Y-%m-%d")
     }
     key_indicators = {
