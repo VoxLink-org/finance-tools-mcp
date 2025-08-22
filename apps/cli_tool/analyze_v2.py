@@ -2,16 +2,14 @@ from typing import Literal
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import precision_recall_curve, fbeta_score
+from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve, fbeta_score
 
 from apps.cli_tool.features import (
     add_technical_indicators,
     add_rolling_statistics,
-    add_custom_features,
-    prepare_data,
-    train_model,
-    evaluate_model
+    add_custom_features
 )
+from apps.cli_tool.features.modeling import define_labels, prepare_data_with_tssplit, train_model, evaluate_model, predict_with_threshold
 from packages.investor_agent_lib.services import yfinance_service
 
 # Define a placeholder for DATA_DIR if it's not available
@@ -23,7 +21,7 @@ except ImportError:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-period = "1y"
+period = "2y"
 
 def get_data(ticker: str, p: Literal["6mo","1y", "2y", "5y", "10y", "ytd"]=period):
     """Fetch data using yfinance service"""
@@ -46,14 +44,6 @@ def feature_engineering(ticker: str = "SPY"):
     print(data.head())
     return data
 
-def define_labels(data):
-    """Defines target labels (1 if price increases 1% in 5 days)"""
-    print("Defining labels...")
-    data['Future_Max_Close'] = data['Close'].rolling(window=5, closed='right').max().shift(-5)
-    data['Label'] = (data['Future_Max_Close'] > data['Close'] * 1.01).astype(int)
-    data.dropna(inplace=True)
-    print(f"Label distribution:\n{data['Label'].value_counts()}")
-    return data
 
 
 def main(ticker="SPY"):
@@ -63,39 +53,62 @@ def main(ticker="SPY"):
     labeled_data = define_labels(processed_data)
     
     # Prepare data for XGBoost
-    X_train, X_test, y_train, y_test = prepare_data(labeled_data)
+    # Prepare data for XGBoost using TimeSeriesSplit
+    tscv_splits = prepare_data_with_tssplit(labeled_data)
 
-    # Train the model
-    model = train_model(X_train, y_train)
+    models = []
+    y_pred_probas = []
+    y_tests = []
+    
+    threshold = 0.3  # Same threshold used in predict_with_threshold
+
+    for i, (X_train, X_test, y_train, y_test) in enumerate(tscv_splits):
+        print(f"\n--- Fold {i+1} ---")
+
+        # Train the model
+        model = train_model(X_train, y_train)
+        models.append(model)
+        # y_pred_probas.append(model.predict_proba(X_test)[:, 1])
+        # Modified code to use predict_with_threshold:
+        y_pred_labels_fold, y_pred_proba_fold = predict_with_threshold(model, X_test, threshold=threshold) # You can adjust the threshold
+        y_pred_probas.append(y_pred_proba_fold)
+        y_tests.append(y_test)
 
     # Evaluate with default threshold (0.5)
-    print("\nEvaluating model with default threshold (0.5)...")
-    evaluate_model(model, X_test, y_test)
+    # Aggregate results for threshold tuning and final evaluation
+    all_y_test = pd.concat(y_tests)
+    all_y_pred_proba = np.concatenate(y_pred_probas)
 
-    # Tune threshold for better F2-score
-    print("\nTuning classification threshold to optimize F2-score...")
-    y_pred_proba = model.predict_proba(X_test)[:, 1]
-    precision, recall, thresholds = precision_recall_curve(y_test, y_pred_proba)
-    f2_scores = [fbeta_score(y_test, (y_pred_proba >= t).astype(int), beta=2)
-                for t in thresholds]
+    # Plot probability distributions
+    print("\nPlotting probability distributions...")
+    plt.figure(figsize=(10, 6))
+    plt.hist(all_y_pred_proba[all_y_test == 0], bins=50, alpha=0.5, label='Label=0')
+    plt.hist(all_y_pred_proba[all_y_test == 1], bins=50, alpha=0.5, label='Label=1')
+    plt.title('Predicted Probability Distribution by Label')
+    plt.xlabel('Predicted Probability')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.savefig('data/probability_distribution.png')
+    plt.close()
     
-    best_idx = np.argmax(f2_scores)
-    best_threshold = thresholds[best_idx]
+    # Evaluate model performance with threshold
+    print("\nEvaluating model performance with threshold...")
+    all_y_pred = (all_y_pred_proba >= threshold).astype(int)
     
-    print(f"Best threshold for maximum F2-score: {best_threshold:.4f}")
-    print(f"Maximum F2-score: {f2_scores[best_idx]:.4f}")
-    print(f"Corresponding precision: {precision[best_idx]:.4f}")
-    print(f"Corresponding recall: {recall[best_idx]:.4f}")
+    print("Confusion Matrix:")
+    print(confusion_matrix(all_y_test, all_y_pred))
+    print("\nClassification Report:")
+    print(classification_report(all_y_test, all_y_pred))
 
-    # Evaluate with tuned threshold
-    print(f"\nEvaluating model with tuned threshold ({best_threshold:.4f})...")
-    evaluate_model(model, X_test, y_test, best_threshold)
+    # Also evaluate last fold's model for reference
+    final_model = models[-1]
+    evaluate_model(final_model, X_test, y_test)  # Using last fold's X_test, y_test
 
-    # Calculate and display feature importance
-    print("\nFeature Importances:")
+    # Calculate and display feature importance from the last model
+    print("\nFeature Importances (from last fold's model):")
     feature_importances = pd.DataFrame({
-        'Feature': X_train.columns,
-        'Importance': model.feature_importances_
+        'Feature': X_train.columns, # X_train from the last fold
+        'Importance': final_model.feature_importances_
     }).sort_values(by='Importance', ascending=False)
     print(feature_importances)
 
@@ -104,3 +117,4 @@ if __name__ == "__main__":
     import sys
     ticker = sys.argv[1] if len(sys.argv) > 1 else "SPY"
     main(ticker)
+    
