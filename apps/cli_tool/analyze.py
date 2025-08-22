@@ -27,9 +27,9 @@ except ImportError:
         os.makedirs(DATA_DIR)
 
 
-period = "2y"
+period = "6mo"
 
-def get_data(ticker: str, p: Literal[ "1mo","1y", "2y", "5y", "10y", "ytd"]=period):
+def get_data(ticker: str, p: Literal[ "6mo","1y", "2y", "5y", "10y", "ytd"]=period):
     """
     Fetches data using yfinance.
     """
@@ -58,10 +58,13 @@ def feature_engineering(ticker: str = "SPY"):
     data['BB_Interaction'] = (data['Close'] - data['Middle_BB']) / data['BB_Width']
     data['MACD_Volume_Interaction'] = data['MACD_Hist'] * data['Volume']
 
+    data['Change'] = data['Close'].diff()
+    data['Change_Pct'] = data['Change'] / data['Close'].shift(1) * 100
+    data['Change_Pct'].fillna(0, inplace=True)
     # Rolling Window Statistical Features
     for window in [5, 10, 20]:
-        data[f'Close_Avg_{window}D'] = data['Close'].rolling(window=window).mean()
-        data[f'Close_Vol_{window}D'] = data['Close'].rolling(window=window).std()
+        data[f'Close_Avg_{window}D'] = data['Change_Pct'].rolling(window=window).mean()
+        data[f'Close_Vol_{window}D'] = data['Change_Pct'].rolling(window=window).std()
         data[f'Volume_Avg_{window}D'] = data['Volume'].rolling(window=window).mean()
         data[f'Volume_Vol_{window}D'] = data['Volume'].rolling(window=window).std()
     
@@ -216,7 +219,11 @@ def main():
     # Train the model
     model = train_model(X_train, y_train)
 
-    # Tune threshold for better F2-score (optimizing recall while maintaining precision)
+    # First evaluate with default threshold (0.5)
+    print("\nEvaluating model with default threshold (0.5)...")
+    evaluate_model(model, X_test, y_test)
+
+    # Then tune threshold for better F2-score (optimizing recall while maintaining precision)
     print("\nTuning classification threshold to optimize F2-score...")
     y_pred_proba = model.predict_proba(X_test)[:, 1]
     

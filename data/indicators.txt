@@ -1,0 +1,116 @@
+UNH
+
+Feature Importances:
+                    Feature  Importance
+7                  BB_Width    0.063050
+3                 MACD_Hist    0.049046
+4                  Upper_BB    0.045363
+13            Volume_Avg_5D    0.044995
+5                 Middle_BB    0.044353
+12             Close_Vol_5D    0.043097
+10  MACD_Volume_Interaction    0.039596
+
+
+NVDA
+
+Feature Importances:
+                    Feature  Importance
+2               MACD_Signal    0.051347
+5                 Middle_BB    0.051297
+25                     VWAP    0.048216
+15            Close_Avg_10D    0.044953
+10  MACD_Volume_Interaction    0.043368
+30                   EMV_MA    0.041820
+13            Volume_Avg_5D    0.041563
+
+AAPL
+
+Feature Importances:
+                    Feature  Importance
+28                    ADOSC    0.079096
+19            Close_Avg_20D    0.043718
+1                      MACD    0.043527
+9            BB_Interaction    0.042672
+18           Volume_Vol_10D    0.040968
+15            Close_Avg_10D    0.038912
+0                       RSI    0.038557
+
+META
+
+Feature Importances:
+                    Feature  Importance
+22           Volume_Vol_20D    0.050350
+9            BB_Interaction    0.044964
+1                      MACD    0.044346
+6                  Lower_BB    0.043253
+25                     VWAP    0.042642
+2               MACD_Signal    0.040484
+20            Close_Vol_20D    0.038642
+0                       RSI    0.038408
+
+
+AVGO
+
+Feature Importances:
+                    Feature  Importance
+25                     VWAP    0.059068
+3                 MACD_Hist    0.047547
+13            Volume_Avg_5D    0.046673
+6                  Lower_BB    0.044950
+5                 Middle_BB    0.043982
+28                    ADOSC    0.041497
+7                  BB_Width    0.041392
+0                       RSI    0.037840
+
+FUTU
+
+Feature Importances:
+                    Feature  Importance
+5                 Middle_BB    0.053693
+7                  BB_Width    0.048290
+6                  Lower_BB    0.045822
+22           Volume_Vol_20D    0.045366
+9            BB_Interaction    0.044406
+23                      OBV    0.043574
+25                     VWAP    0.042223
+14            Volume_Vol_5D    0.041489
+
+QQQ
+
+Feature Importances:
+                    Feature  Importance
+0                       RSI    0.056201
+9            BB_Interaction    0.055282
+5                 Middle_BB    0.046791
+1                      MACD    0.046695
+27                      ADL    0.041696
+30                   EMV_MA    0.041534
+6                  Lower_BB    0.041131
+7                  BB_Width    0.040733
+
+SPY
+
+Feature Importances:
+                    Feature  Importance
+30                   EMV_MA    0.058566
+10  MACD_Volume_Interaction    0.054008
+14            Volume_Vol_5D    0.046425
+3                 MACD_Hist    0.040618
+15            Close_Avg_10D    0.040572
+17           Volume_Avg_10D    0.039602
+1                      MACD    0.039375
+18           Volume_Vol_10D    0.039043
+20            Close_Vol_20D    0.038698
+
+NVO
+
+Feature Importances:
+                    Feature  Importance
+25                     VWAP    0.049395
+20            Close_Vol_20D    0.044088
+5                 Middle_BB    0.041547
+18           Volume_Vol_10D    0.041152
+14            Volume_Vol_5D    0.041120
+15            Close_Avg_10D    0.040397
+1                      MACD    0.037023
+21           Volume_Avg_20D    0.036989
