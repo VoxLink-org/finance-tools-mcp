@@ -50,7 +50,7 @@ def create_mcp_application():
 
     mcp.add_tool(cnn_fng_tools.get_overall_sentiment_tool)
     mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
-    mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
+    # mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
 
     # Register calculation tools
     mcp.add_tool(calculation_tools.calculate)
