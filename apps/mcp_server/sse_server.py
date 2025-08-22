@@ -42,6 +42,7 @@ def run_sse_server(mcp_server: FastMCP):
         host=mcp_server.settings.host,
         port=mcp_server.settings.port,
         log_level=mcp_server.settings.log_level.lower(),
+        timeout_graceful_shutdown=3 , # Force shutdown after 3 seconds
     )
     server = uvicorn.Server(config)
     anyio.run(server.serve)
