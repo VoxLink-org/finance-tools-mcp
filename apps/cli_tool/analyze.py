@@ -208,9 +208,9 @@ def calculate_correlation_matrices(data):
     print(f"\nCorrelation matrices saved to {DATA_DIR}")
     return pearson_corr, spearman_corr
 
-def main():
+def main(ticker:str = "SPY"):
     # Run the feature engineering and label definition pipeline
-    processed_data = feature_engineering(ticker="SPY")
+    processed_data = feature_engineering(ticker)
     labeled_data = define_labels(processed_data)
     
     # Prepare data for XGBoost
@@ -336,4 +336,6 @@ def main():
     # plt.show() # Uncomment to display plots directly
 
 if __name__ == "__main__":
-    main()
+    import sys
+    ticker = sys.argv[1] if len(sys.argv) > 1 else "SPY"
+    main(ticker)
