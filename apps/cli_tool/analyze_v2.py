@@ -21,7 +21,7 @@ except ImportError:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-period = "2y"
+period = "1y"
 
 def get_data(ticker: str, p: Literal["6mo","1y", "2y", "5y", "10y", "ytd"]=period):
     """Fetch data using yfinance service"""
@@ -74,7 +74,6 @@ def main(ticker="SPY"):
         y_pred_probas.append(y_pred_proba_fold)
         y_tests.append(y_test)
 
-    # Evaluate with default threshold (0.5)
     # Aggregate results for threshold tuning and final evaluation
     all_y_test = pd.concat(y_tests)
     all_y_pred_proba = np.concatenate(y_pred_probas)

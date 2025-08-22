@@ -12,7 +12,7 @@ from sklearn.metrics import (
 )
 
 def define_labels(data):
-    """Defines binary target labels (0: others, 1: significant rise) based on 75th percentile dynamic threshold over 5 days)"""
+    """Defines binary target labels (0: others, 1: significant rise) based on 75th percentile dynamic threshold over 3 days)"""
     print("Defining labels...")
     
     # Calculate future close price over 5 days
@@ -23,12 +23,12 @@ def define_labels(data):
     # Calculate dynamic threshold based on 75th percentile of past price changes
     # Shift Price_Change_5d by 5 days to ensure the rolling window only uses past data relative to the labeling point
     window_size = 60 # Example window size for dynamic percentiles
-    data['Upper_Bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.75)
+    data['Upper_Bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
 
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)
     data.loc[data['Price_Change_5d'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
-
+    
     # Drop rows with NaN labels
     
     data.dropna(inplace=True)
@@ -37,6 +37,7 @@ def define_labels(data):
     print(f'chg is {data["Price_Change_5d"].tail(20)}')
     print(f'label is {data["Label"].tail(20)}')
 
+    
     
     # Drop temporary columns
     data.drop(columns=['Future_Close', 'Price_Change_5d', 'Upper_Bound'], inplace=True)
