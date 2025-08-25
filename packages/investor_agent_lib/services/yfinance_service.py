@@ -277,7 +277,7 @@ def get_filtered_options(
         return None, f"Failed to retrieve options data: {str(e)}"
     
 
-def get_ticker_news(ticker: str) -> list | None:
+def get_ticker_news(ticker: str) -> list[dict] | None:
     try:
         news = yf.Ticker(ticker, session=session).news[-10:]  # Limit to top 10
         
@@ -287,11 +287,11 @@ def get_ticker_news(ticker: str) -> list | None:
 
         for item in news:
             res.append({
-                'date': item['content']['pubDate'],
+                'date': datetime.strptime(item['content']['pubDate'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d'),
                 'title': item['content']['title'],
                 'summary': item['content']['summary']
             })
-
+                
         return res
     except Exception as e:
         logger.error(f"Error retrieving ticker news for {ticker}: {e}")

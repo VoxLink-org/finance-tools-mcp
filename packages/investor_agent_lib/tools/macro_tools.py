@@ -38,7 +38,7 @@ def cnbc_news_feed():
     news.insert(1, key_indicators)
     return news
 
-def social_media_feed(keywords: list[str] = None):
+def social_media_feed(keywords: list[str] = [])-> list[dict]:
     """Get most discussed stocks and investments opinions from reddit. Useful to know what investors are talking about. 
     keywords is optional. Set keywords to match the specific topic you are interested in, by 'OR' operator, e.g. ['tsla', 'tesla'],  ['tesla', 'spacex'], ['AAPL', 'apple', 'tim cook', 'cook']
     No keywords will return the most discussed stocks and investments. """

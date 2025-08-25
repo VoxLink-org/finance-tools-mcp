@@ -328,12 +328,12 @@ def get_insider_trades(ticker: str) -> str:
     return (f"INSIDER TRADES FOR {ticker}:\n" +
             tabulate(trades_data, headers=["Date", "Insider", "Title", "Text", "Shares"], tablefmt="plain"))
 
-def get_ticker_news_tool(ticker: str) -> str:
+def get_ticker_news_tool(ticker: str) -> list[dict]:
     """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""
     news = yfinance_service.get_ticker_news(ticker)
 
     if news is None or len(news) == 0:
-        return f"No news found for {ticker}"
+        raise f"No news found for {ticker}"
 
     
     return news

@@ -246,7 +246,7 @@ def get_rss(url):
         logger.error(f"Error retrieving reddit stock post: {e}")
     return results
 
-def reddit_stock_post(keywords: list = None):
+def reddit_stock_post(keywords: list[str] = []):
     
     
     url1 = 'https://www.reddit.com/r/stocks/.rss'
