@@ -269,8 +269,7 @@ def reddit_stock_post(keywords: list[str] = []):
         print(f"Filtered results: {len(filtered_results)} out of {len(combined_results)} with keywords: {keywords}")
         return filtered_results
     
-    results = random.choices(r1, k=14) + random.choices(r2, k=7) + random.choices(r3, k=7)
-    random.shuffle(results)
+    results = random.choices(r1+r2+r3, k=min(20, len(r1+r2+r3)//3))
     return results
 
 @cache.lru_with_ttl(ttl_seconds=300)
