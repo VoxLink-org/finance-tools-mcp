@@ -7,6 +7,12 @@ def add_technical_indicators(data):
     data['RSI'] = ta.RSI(data['Close'], timeperiod=14)
     data['MACD'], data['MACD_Signal'], data['MACD_Hist'] = ta.MACD(
         data['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    data['EMA_12'] = ta.EMA(data['Close'], timeperiod=12)
+    data['EMA_26'] = ta.EMA(data['Close'], timeperiod=26)
+    data['EMA_12_26_Diff'] = data['EMA_12'] - data['EMA_26']
+    data['Stoch_K'], data['Stoch_D'] = ta.STOCH(
+        data['High'], data['Low'], data['Close'], 
+        fastk_period=14, slowk_period=3, slowd_period=3)
     
     # Volatility Indicators
     data['Upper_BB'], data['Middle_BB'], data['Lower_BB'] = ta.BBANDS(
