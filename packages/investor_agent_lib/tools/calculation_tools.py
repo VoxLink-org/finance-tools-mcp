@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Note: MCP server initialization and registration will happen in server.py
 
-def calculate(expression: str) -> str:
+def calculate(expression: str) -> dict:
     """Calculate the result of a mathematical expression. Support python math syntax and numpy.
     > "2 * 3 + 4"
     > "sin(pi/2)"
