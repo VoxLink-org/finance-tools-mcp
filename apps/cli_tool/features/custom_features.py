@@ -19,4 +19,4 @@ def add_custom_features(data):
     data['Price_Volume_Trend'] = data['Close'].pct_change() * data['Volume_Spike']
     
     # Clean any infinite values from divisions
-    return data.replace([np.inf, -np.inf], np.nan).dropna()
+    return data.replace([np.inf, -np.inf], np.nan) 

@@ -11,3 +11,4 @@ example.py
 src/investor_agent/.cache/
 yfinance.cache
 data/*.db
+data/*.pkl

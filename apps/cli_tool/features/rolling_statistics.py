@@ -20,5 +20,9 @@ def add_rolling_statistics(data):
         # Volume adjusted metrics
         data[f'VWAP_{window}D'] = (data['Close'] * data['Volume']).rolling(window).sum() / \
                                  data['Volume'].rolling(window).sum()
+
+        # Normalized VWAP
+        data[f'VWAP_Norm_{window}D'] = (data[f'VWAP_{window}D'] - data[f'VWAP_{window}D'].rolling(window).mean()) / \
+                                     data[f'VWAP_{window}D'].rolling(window).std()
     
-    return data.dropna()
+    return data 
