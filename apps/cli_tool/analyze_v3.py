@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 np.random.seed(42)
 
+from sklearn.metrics import accuracy_score, classification_report
+import xgboost as xgb
+
 from apps.cli_tool.features import (
     add_technical_indicators,
     add_rolling_statistics,
@@ -55,10 +58,11 @@ def label_panel_data(panel_data: pd.DataFrame):
 def clean_panel_dataframe(panel_data: pd.DataFrame):
     # Drop cols with Close,High,Low,Open,Volume
     cols_to_drop = ['Close', 'High', 'Low', 'Open', 'Volume',
+                    'MACD', 'MACD_Signal', 'MACD_Hist', 
                     'EMA_12', 'EMA_26', 'Upper_BB', 'Middle_BB', 'Lower_BB', 'BB_Width',
                     'OBV', 'ADL', 'ADOSC', 'EMV', 'EMV_MA',
                     'VWAP_5D', 'VWAP_10D', 'VWAP_20D',
-                    'Price_Volume_Trend'
+                    'Price_Volume_Trend', 'Stoch_D','Stoch_K'
                     ]
     panel_data = panel_data.drop(columns=cols_to_drop, errors='ignore')
     # Drop rows with any NaN values
@@ -104,10 +108,72 @@ def main(period="1y"):
     # save top 500 to csv for quick check
     test_data.to_csv("feature_engineered_sample.csv", index=False)
 
-    # importance of features    
+    # use multi classification to get importance of features by xgboost
     
+    
+    # use multi classification to get importance of features by xgboost
+    feature_importances = get_feature_importance_by_xgboost(train_data, val_data, test_data)
+    print("Feature Importances:")
+    print(feature_importances.head())
+    feature_importances.to_csv("xgboost_feature_importance.csv", index=False)
     
     return processed_data
+
+def get_feature_importance_by_xgboost(train_data: pd.DataFrame, val_data: pd.DataFrame, test_data: pd.DataFrame):
+    """
+    Trains an XGBoost classifier and extracts feature importance.
+    """
+    # Assuming 'Label' is the target column and 'date', 'ticker' are not features
+    target_column = 'Label'
+    
+    # Identify feature columns
+    feature_columns = [col for col in train_data.columns if col not in [target_column, 'date', 'ticker']]
+
+    X_train = train_data[feature_columns]
+    y_train = train_data[target_column]
+    X_val = val_data[feature_columns]
+    y_val = val_data[target_column]
+    X_test = test_data[feature_columns]
+    y_test = test_data[target_column]
+
+    # Initialize XGBoost Classifier for multi-class classification
+    # Determine the number of unique classes in the training data
+    num_classes = y_train.nunique()
+    
+    model = xgb.XGBClassifier(
+        objective='multi:softmax',  # For multi-class classification
+        num_class=num_classes,      # Number of unique classes
+        eval_metric='mlogloss',     # Evaluation metric for multi-class
+        use_label_encoder=False,    # Suppress the warning
+        n_estimators=100,
+        learning_rate=0.1,
+        random_state=42,
+        early_stopping_rounds=10
+    )
+
+    # Train the model
+    model.fit(X_train, y_train,
+              eval_set=[(X_val, y_val)],
+              verbose=False)
+
+    # Predict on the test data
+    y_pred = model.predict(X_test)
+
+    # Evaluate the model
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy on test set: {accuracy:.4f}")
+    print("Classification Report on test set:")
+    print(classification_report(y_test, y_pred))
+
+    # Get feature importance
+    importance = model.feature_importances_
+    feature_importance_df = pd.DataFrame({
+        'feature': feature_columns,
+        'importance': importance
+    })
+    feature_importance_df = feature_importance_df.sort_values(by='importance', ascending=False).reset_index(drop=True)
+    
+    return feature_importance_df
 
 if __name__ == "__main__":
     import sys

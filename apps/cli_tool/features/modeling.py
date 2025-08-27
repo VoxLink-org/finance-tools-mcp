@@ -23,14 +23,14 @@ def define_labels(data):
 
     # Calculate dynamic threshold based on 75th percentile of past price changes
     # Shift Price_Change_5d by 5 days to ensure the rolling window only uses past data relative to the labeling point
-    window_size = 60 # Example window size for dynamic percentiles
-    data['Upper_Bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
-    data['lower_bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
+    window_size = 10 # Example window size for dynamic percentiles
+    data['Upper_Bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.60)
+    data['lower_bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.45)
     
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)
     data.loc[data['Price_Change_5d'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
-    data.loc[data['Price_Change_5d'] <= data['lower_bound'], 'Label'] = -1  # Significant drop
+    # data.loc[data['Price_Change_5d'] <= data['lower_bound'], 'Label'] = 2  # Significant drop
     
     # Drop rows with NaN labels
     

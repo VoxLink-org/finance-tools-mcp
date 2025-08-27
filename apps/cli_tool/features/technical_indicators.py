@@ -7,6 +7,11 @@ def add_technical_indicators(data):
     data['RSI'] = ta.RSI(data['Close'], timeperiod=14)
     data['MACD'], data['MACD_Signal'], data['MACD_Hist'] = ta.MACD(
         data['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    
+    # Normalized MACD
+    # data['MACD_Norm'] = (data['MACD'] - data['MACD'].rolling(window=20).mean()) / data['MACD'].rolling(window=20).std()
+    data['MACD_Hist_Norm'] = (data['MACD_Hist'] - data['MACD_Hist'].rolling(window=20).mean()) / data['MACD_Hist'].rolling(window=20).std()
+    
     data['EMA_12'] = ta.EMA(data['Close'], timeperiod=12)
     data['EMA_26'] = ta.EMA(data['Close'], timeperiod=26)
     data['EMA_12_26_Ratio'] = data['EMA_12'] / data['EMA_26']
