@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
     url = 'https://www.tradingview.com/markets/stocks-usa/market-movers-active/'
-
     try:
         response = httpx.get(url)
         response.raise_for_status()
@@ -20,7 +19,8 @@ def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
         tickers = [option['data-rowkey'] for option in soup.select('tr.listRow')]
         if not prefix:
             tickers = [ticker.split(':')[1] for ticker in tickers]
-        return tickers
+        dont_want = ['BRK.A','APAD','ETHM','AHL','BMNR','CRCL']
+        return [ticker for ticker in tickers if ticker not in dont_want]
     except Exception as e:
         logger.error(f"Error getting most active tickers: {e}")
         return []
@@ -30,7 +30,8 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
     today = datetime.date.today().isoformat()
     # try to load from file first
     data_path = DATA_DIR / f"most_active_{period}_{today}.pkl"
-    if data_path.exists():
+    use_cache = False
+    if use_cache and data_path.exists():
         try:
             df = pd.read_pickle(data_path)
             if not df.empty:

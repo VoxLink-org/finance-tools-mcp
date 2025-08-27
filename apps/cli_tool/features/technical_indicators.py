@@ -40,7 +40,11 @@ def add_technical_indicators(data):
     data['ADOSC'] = ta.ADOSC(data['High'], data['Low'], data['Close'], data['Volume'], 
                             fastperiod=3, slowperiod=10)
     
-    
+    # Strength Indicators
+    # data['CCI'] = ta.CCI(data['High'], data['Low'], data['Close'], timeperiod=14)
+    data['ADX'] = ta.ADX(data['High'], data['Low'], data['Close'], timeperiod=14)
+    data['DI_Plus'] = ta.PLUS_DI(data['High'], data['Low'], data['Close'], timeperiod=14)
+    data['DI_Minus'] = ta.MINUS_DI(data['High'], data['Low'], data['Close'], timeperiod=14)
     
     # Ease of Movement
     distance_moved = ((data['High'] + data['Low'])/2 - 

@@ -1,4 +1,4 @@
-import pickle
+import talib as ta
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -16,21 +16,21 @@ from scipy.stats import ks_2samp # For KS value
 def define_labels(data):
     """Defines binary target labels (0: others, 1: significant rise) based on 75th percentile dynamic threshold over 3 days)"""
     
-    # Calculate future close price over 5 days
+    # Calculate future close price over n days
     data['Future_Close'] = data['Close'].shift(-5)
-    # Calculate price change over 5 days
-    data['Price_Change_5d'] = (data['Future_Close'] - data['Close']) / data['Close']
+    # Calculate price change over n days
+    data['Price_Change_nd'] = (data['Future_Close'] - data['Close']) / data['Close']
 
     # Calculate dynamic threshold based on 75th percentile of past price changes
-    # Shift Price_Change_5d by 5 days to ensure the rolling window only uses past data relative to the labeling point
-    window_size = 10 # Example window size for dynamic percentiles
-    data['Upper_Bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.60)
-    data['lower_bound'] = data['Price_Change_5d'].shift(5).rolling(window=window_size, closed='right').quantile(0.45)
+    # Shift Price_Change_nd by n days to ensure the rolling window only uses past data relative to the labeling point
+    window_size = 7 # Example window size for dynamic percentiles
+    data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
+    data['lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
     
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)
-    data.loc[data['Price_Change_5d'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
-    # data.loc[data['Price_Change_5d'] <= data['lower_bound'], 'Label'] = 2  # Significant drop
+    # data.loc[data['Price_Change_nd'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
+    data.loc[data['Price_Change_nd'] <= data['lower_bound'], 'Label'] = 1  # Significant drop
     
     # Drop rows with NaN labels
     
@@ -38,7 +38,7 @@ def define_labels(data):
 
 
     # Drop temporary columns
-    data.drop(columns=['Future_Close', 'Price_Change_5d', 'Upper_Bound', 'lower_bound'], inplace=True)
+    data.drop(columns=['Future_Close', 'Price_Change_nd', 'Upper_Bound', 'lower_bound'], inplace=True)
     
     
     return data
