@@ -27,20 +27,6 @@ def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
     
     
 def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "5d", end_date: pd.Timestamp=None) -> pd.DataFrame:
-    today = datetime.date.today().isoformat()
-    # try to load from file first
-    data_path = DATA_DIR / f"most_active_{period}_{today}.pkl"
-    use_cache = True
-    if use_cache and data_path.exists():
-        try:
-            df = pd.read_pickle(data_path)
-            if not df.empty:
-                # Convert index to datetime if it's date strings
-                if isinstance(df.index[0], str):
-                    df.index = pd.to_datetime(df.index)
-                return df
-        except Exception as e:
-            logger.error(f"Error loading data from {data_path}: {e}")
             
     tickers = get_most_active_tickers_from_tradingview()
     end_date = pd.Timestamp.utcnow() if end_date is None else end_date
@@ -69,6 +55,20 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
         start_date = pd.Timestamp.utcnow().replace(month=1, day=1)
     elif period == "max":
         start_date = pd.Timestamp.min
+        
+    # try to load from file first
+    data_path = DATA_DIR / f"most_active_tickers_{start_date}_{end_date}.pkl"
+    use_cache = True
+    if use_cache and data_path.exists():
+        try:
+            df = pd.read_pickle(data_path)
+            if not df.empty:
+                # Convert index to datetime if it's date strings
+                if isinstance(df.index[0], str):
+                    df.index = pd.to_datetime(df.index)
+                return df
+        except Exception as e:
+            logger.error(f"Error loading data from {data_path}: {e}")
 
     data = yfinance_service.download_history(
         tickers,

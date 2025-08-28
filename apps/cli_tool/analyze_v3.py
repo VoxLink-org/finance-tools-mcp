@@ -135,6 +135,11 @@ def split_data_by_date(panel_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataF
     return train_data, val_data, test_data
 
 def main(period="1y"):
+    """
+    It is a down turn predictor for label = 1
+    which means the training data must contain at least one down turn
+    otherwise the model will not be able to learn, bad case is 2023-08 to 2024-08
+    """
     processed_data = fetch_panel_data(period=period, end_date=pd.Timestamp("2025-08-10"))
     print("Fetched panel data. Sample data:")
     print(processed_data.tail())
@@ -206,18 +211,22 @@ def get_feature_importance_by_xgboost(train_data: pd.DataFrame, val_data: pd.Dat
         early_stopping_rounds=10,
         scale_pos_weight=scale_pos_weight_value
     )
+    
+    # Optimal threshold for imbalanced data (default 0.5)
+    optimal_threshold = 0.55  # Adjust based on validation set performance
 
     # Train the model
     model.fit(X_train, y_train,
               eval_set=[(X_val, y_val)],
               verbose=False)
 
-    # Predict on the test data
-    y_pred = model.predict(X_test)
+    # Predict on the test data with custom threshold
+    y_proba = model.predict_proba(X_test)[:, 1]  # Get probabilities for class 1
+    y_pred = (y_proba >= optimal_threshold).astype(int)  # Apply threshold
 
     # Evaluate the model
     accuracy = accuracy_score(y_test, y_pred)
-    print(f"Accuracy on test set: {accuracy:.4f}")
+    print(f"Accuracy on test set (threshold={optimal_threshold}): {accuracy:.4f}")
     print("Classification Report on test set:")
     print(classification_report(y_test, y_pred))
 
