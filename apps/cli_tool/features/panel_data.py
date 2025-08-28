@@ -30,7 +30,7 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
     today = datetime.date.today().isoformat()
     # try to load from file first
     data_path = DATA_DIR / f"most_active_{period}_{today}.pkl"
-    use_cache = False
+    use_cache = True
     if use_cache and data_path.exists():
         try:
             df = pd.read_pickle(data_path)
@@ -115,3 +115,4 @@ if __name__ == "__main__":
     import sys
     ticker = sys.argv[1] if len(sys.argv) > 1 else "5d"
     data = fetch_panel_data(ticker)
+    print(data.tail(10))

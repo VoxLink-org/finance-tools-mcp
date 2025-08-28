@@ -24,8 +24,8 @@ def define_labels(data):
     # Calculate dynamic threshold based on 75th percentile of past price changes
     # Shift Price_Change_nd by n days to ensure the rolling window only uses past data relative to the labeling point
     window_size = 7 # Example window size for dynamic percentiles
-    data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
-    data['lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
+    data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.7)
+    data['lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.3)
     
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)

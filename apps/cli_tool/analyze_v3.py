@@ -10,6 +10,7 @@ from apps.cli_tool.features import (
     add_rolling_statistics,
     add_custom_features,
     add_pattern_features,
+    add_market_indicators,
     fetch_panel_data
 )
 
@@ -33,7 +34,10 @@ def feature_engineering(panel_data: pd.DataFrame):
         # ticker_data = add_custom_features(ticker_data)
         
         # Add pattern features
-        # ticker_data = add_pattern_features(ticker_data)
+        ticker_data = add_pattern_features(ticker_data)
+        
+        # Add market indicators
+        ticker_data = add_market_indicators(ticker_data)
         
         processed_data.append(ticker_data)
     
@@ -76,7 +80,7 @@ def clean_panel_dataframe(panel_data: pd.DataFrame):
                     ]
     panel_data = panel_data.drop(columns=cols_to_drop, errors='ignore')
     # Drop rows with any NaN values
-    panel_data = panel_data.dropna()
+    panel_data.dropna(inplace=True)
     return panel_data
 
 def split_data_by_stock(panel_data: pd.DataFrame)-> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -131,13 +135,14 @@ def split_data_by_date(panel_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataF
     return train_data, val_data, test_data
 
 def main(period="1y"):
-    processed_data = fetch_panel_data(period=period, end_date=pd.Timestamp("2025-05-10"))
+    processed_data = fetch_panel_data(period=period, end_date=pd.Timestamp("2025-08-10"))
     print("Fetched panel data. Sample data:")
-    print(processed_data['date'].head())
+    print(processed_data.tail())
     processed_data = feature_engineering(processed_data)
-    print(processed_data['date'].head())
+    print(processed_data.tail())
+    processed_data.tail(500).to_csv("feature_engineered_sample_before_labeling.csv", index=False)
     processed_data = label_panel_data(processed_data)
-    print(processed_data['date'].head())
+    processed_data.tail(500).to_csv("feature_engineered_sample_after_labeling.csv", index=False)
 
     # sort by date and ticker
     processed_data = clean_panel_dataframe(processed_data)
@@ -145,7 +150,7 @@ def main(period="1y"):
     
     train_data, val_data, test_data = split_data_by_date(processed_data)
     # save top 500 to csv for quick check
-    test_data.to_csv("feature_engineered_sample.csv", index=False)
+    test_data.head(500).to_csv("feature_engineered_sample.csv", index=False)
     print('Train data label distribution:')
     print(train_data['Label'].value_counts())
     print('Test data label distribution:')
