@@ -10,25 +10,40 @@ from config.my_paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 
-def get_most_active_tickers_from_tradingview(prefix=False) -> List[str]:
-    url = 'https://www.tradingview.com/markets/stocks-usa/market-movers-active/'
-    try:
-        response = httpx.get(url)
-        response.raise_for_status()
-        soup = bs4.BeautifulSoup(response.text, 'html.parser')
-        tickers = [option['data-rowkey'] for option in soup.select('tr.listRow')]
-        if not prefix:
-            tickers = [ticker.split(':')[1] for ticker in tickers]
-        dont_want = ['BRK.A','APAD','ETHM','AHL','BMNR','CRCL']
-        return [ticker for ticker in tickers if ticker not in dont_want]
-    except Exception as e:
-        logger.error(f"Error getting most active tickers: {e}")
-        return []
+def get_tickers_from_tradingview(prefix=False) -> List[str]:
+    urls = ['https://www.tradingview.com/markets/stocks-usa/market-movers-active/',
+            'https://www.tradingview.com/markets/stocks-usa/market-movers-large-cap/']
+
+    all_tickers = []
+    for url in urls:
+        try:
+            tickers = []
+            response = httpx.get(url)
+            response.raise_for_status()
+            soup = bs4.BeautifulSoup(response.text, 'html.parser')
+            tickers = [option['data-rowkey'] for option in soup.select('tr.listRow')]
+            if not prefix:
+                tickers = [ticker.split(':')[1] for ticker in tickers]
+            dont_want = ['BRK.A','APAD','ETHM','AHL','BMNR','CRCL']
+            tickers = [ticker for ticker in tickers if ticker not in dont_want]
+            all_tickers.extend(tickers)
+        except Exception as e:
+            logger.error(f"Error getting most active tickers: {e}")
+            continue
+
+    # remove duplicates
+    all_tickers = list(set(all_tickers))
+    return all_tickers
+
+
     
+
+
+
     
 def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "5d", end_date: pd.Timestamp=None) -> pd.DataFrame:
             
-    tickers = get_most_active_tickers_from_tradingview()
+    tickers = get_tickers_from_tradingview()
     end_date = pd.Timestamp.utcnow() if end_date is None else end_date
 
     if period == "1d":
@@ -57,7 +72,7 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
         start_date = pd.Timestamp.min
         
     # try to load from file first
-    data_path = DATA_DIR / f"most_active_tickers_{start_date}_{end_date}.pkl"
+    data_path = DATA_DIR / f"most_focused_tickers_{start_date}_{end_date}.pkl"
     use_cache = True
     if use_cache and data_path.exists():
         try:

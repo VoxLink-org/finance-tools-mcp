@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 np.random.seed(42)
-
 from sklearn.metrics import accuracy_score, classification_report
 import xgboost as xgb
 
@@ -88,7 +87,7 @@ def split_data_by_stock(panel_data: pd.DataFrame)-> tuple[pd.DataFrame, pd.DataF
     tickers = panel_data['ticker'].unique()
     # shuffle tickers
     np.random.shuffle(tickers)
-    train_size = int(len(tickers) * 0.7)
+    train_size = int(len(tickers) * 0.85)
     val_size = int(len(tickers) * 0.15)
     train_tickers = tickers[:train_size]
     val_tickers = tickers[train_size:train_size + val_size]
@@ -134,46 +133,9 @@ def split_data_by_date(panel_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataF
     
     return train_data, val_data, test_data
 
-def main(period="1y"):
+def train_by_xgboost(train_data: pd.DataFrame, val_data: pd.DataFrame, test_data: pd.DataFrame):
     """
-    It is a down turn predictor for label = 1
-    which means the training data must contain at least one down turn
-    otherwise the model will not be able to learn, bad case is 2023-08 to 2024-08
-    """
-    processed_data = fetch_panel_data(period=period, end_date=pd.Timestamp("2025-08-10"))
-    print("Fetched panel data. Sample data:")
-    print(processed_data.tail())
-    processed_data = feature_engineering(processed_data)
-    print(processed_data.tail())
-    processed_data.tail(500).to_csv("feature_engineered_sample_before_labeling.csv", index=False)
-    processed_data = label_panel_data(processed_data)
-    processed_data.tail(500).to_csv("feature_engineered_sample_after_labeling.csv", index=False)
-
-    # sort by date and ticker
-    processed_data = clean_panel_dataframe(processed_data)
-    print("Feature engineering and labeling complete. Sample data:")
-    
-    train_data, val_data, test_data = split_data_by_date(processed_data)
-    # save top 500 to csv for quick check
-    test_data.head(500).to_csv("feature_engineered_sample.csv", index=False)
-    print('Train data label distribution:')
-    print(train_data['Label'].value_counts())
-    print('Test data label distribution:')
-    print(test_data['Label'].value_counts())
-    # use multi classification to get importance of features by xgboost
-    
-    
-    # use multi classification to get importance of features by xgboost
-    feature_importances = get_feature_importance_by_xgboost(train_data, val_data, test_data)
-    print("Feature Importances:")
-    print(feature_importances.head())
-    feature_importances.to_csv("xgboost_feature_importance.csv", index=False)
-    
-    return processed_data
-
-def get_feature_importance_by_xgboost(train_data: pd.DataFrame, val_data: pd.DataFrame, test_data: pd.DataFrame):
-    """
-    Trains an XGBoost classifier and extracts feature importance.
+    Trains an XGBoost classifier .
     """
     # Assuming 'Label' is the target column and 'date', 'ticker' are not features
     target_column = 'Label'
@@ -213,7 +175,7 @@ def get_feature_importance_by_xgboost(train_data: pd.DataFrame, val_data: pd.Dat
     )
     
     # Optimal threshold for imbalanced data (default 0.5)
-    optimal_threshold = 0.55  # Adjust based on validation set performance
+    optimal_threshold = 0.52  # Adjust based on validation set performance
 
     # Train the model
     model.fit(X_train, y_train,
@@ -228,17 +190,64 @@ def get_feature_importance_by_xgboost(train_data: pd.DataFrame, val_data: pd.Dat
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy on test set (threshold={optimal_threshold}): {accuracy:.4f}")
     print("Classification Report on test set:")
-    print(classification_report(y_test, y_pred))
+    
+    report = classification_report(y_test, y_pred, output_dict=True)
+    
+    print(report)
+    
+    
+    return model, report
 
+
+
+def main(period="1y", end_date_str="2025-08-10"):
+    """
+    It is a down turn predictor for label = 1
+    which means the training data must contain at least one down turn
+    otherwise the model will not be able to learn, bad case is 2023-08 to 2024-08
+    """
+    processed_data = fetch_panel_data(period=period, end_date=pd.Timestamp(end_date_str))
+    print("Fetched panel data. Sample data:")
+    print(processed_data.tail())
+    processed_data = feature_engineering(processed_data)
+    print(processed_data.tail())
+    processed_data.tail(500).to_csv("feature_engineered_sample_before_labeling.csv", index=False)
+    processed_data = label_panel_data(processed_data)
+    processed_data.tail(500).to_csv("feature_engineered_sample_after_labeling.csv", index=False)
+
+    # sort by date and ticker
+    processed_data = clean_panel_dataframe(processed_data)
+    print("Feature engineering and labeling complete. Sample data:")
+    
+    train_data, val_data, test_data = split_data_by_date(processed_data)
+    # save top 500 to csv for quick check
+    test_data.head(500).to_csv("feature_engineered_sample.csv", index=False)
+    print('Train data label distribution:')
+    print(train_data['Label'].value_counts())
+    print('Test data label distribution:')
+    print(test_data['Label'].value_counts())
+    # use multi classification to get importance of features by xgboost
+    
+    
+    # use multi classification to get importance of features by xgboost
+    model, report = train_by_xgboost(train_data, val_data, test_data)
+    
     # Get feature importance
     importance = model.feature_importances_
-    feature_importance_df = pd.DataFrame({
+    feature_columns = [col for col in train_data.columns if col not in ['Label', 'date', 'ticker']]
+
+    feature_importances = pd.DataFrame({
         'feature': feature_columns,
         'importance': importance
     })
-    feature_importance_df = feature_importance_df.sort_values(by='importance', ascending=False).reset_index(drop=True)
+    feature_importances = feature_importances.sort_values(by='importance', ascending=False).reset_index(drop=True)
+
+    print("Feature Importances:")
+    print(feature_importances.head())
     
-    return feature_importance_df
+    
+    return feature_importances, model, report
+
 
 if __name__ == "__main__":
     import sys

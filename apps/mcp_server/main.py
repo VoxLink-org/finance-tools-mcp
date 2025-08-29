@@ -14,6 +14,9 @@ from packages.investor_agent_lib.tools import macro_tools
 from packages.investor_agent_lib.tools import option_tools
 from packages.investor_agent_lib.tools import predict_tools
 
+from . import train_service
+
+
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
@@ -70,5 +73,10 @@ def create_mcp_application():
     mcp.prompt()(prompts.mode_instructions)
     mcp.prompt()(prompts.investment_principles)
     mcp.prompt()(prompts.portfolio_construction_prompt)
-
+    
+    
+    # Register other routes
+    mcp.custom_route("/train", methods=["GET","POST","OPTIONS"])(train_service.trigger_train_model)
+    mcp.custom_route("/health", methods=["GET","HEAD","OPTIONS"])(train_service.health_check)
+    
     return mcp

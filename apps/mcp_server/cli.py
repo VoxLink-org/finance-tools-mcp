@@ -25,10 +25,10 @@ def main():
 
     # Parse arguments and run the server
     args = parser.parse_args()
-    if args.transport == "sse":
-        sse_server.run_sse_server(mcp_app)
-    else:
-        mcp_app.run(transport=args.transport)
+    # if args.transport == "sse":
+    #     sse_server.run_sse_server(mcp_app)
+    # else:
+    mcp_app.run(transport=args.transport)
 
 if __name__ == "__main__":
     main()
