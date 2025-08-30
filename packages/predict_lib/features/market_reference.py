@@ -18,7 +18,6 @@ def add_market_indicators(data: pd.DataFrame) -> pd.DataFrame:
         market_data = pd.read_pickle(cache_name)
     else:    
         next_date = end_date + pd.Timedelta(days=1)
-        print(f"Fetching market data from {start_date.strftime("%Y-%m-%d")} to {next_date.strftime("%Y-%m-%d")}...")
         raw = yfinance_service.download_history(
             indicators,
             start_date=start_date.strftime("%Y-%m-%d"),
