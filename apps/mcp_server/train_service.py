@@ -2,7 +2,7 @@ import json
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
-from apps.cli_tool import train_down_v3
+from packages.predict_lib import train_down_v3
 from config.my_paths import DATA_DIR
 import pickle
 

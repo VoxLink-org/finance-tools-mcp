@@ -13,7 +13,7 @@ from sklearn.metrics import (
 )
 from scipy.stats import ks_2samp # For KS value
 
-def define_labels(data):
+def define_labels(data, drop_temp=True):
     """Defines binary target labels (0: others, 1: significant rise) based on 75th percentile dynamic threshold over 5 days)"""
     
     # Calculate future close price over n days
@@ -25,12 +25,12 @@ def define_labels(data):
     # Shift Price_Change_nd by n days to ensure the rolling window only uses past data relative to the labeling point
     window_size = 7 # Example window size for dynamic percentiles
     data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
-    data['lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
+    data['Lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
     
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)
     # data.loc[data['Price_Change_nd'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
-    data.loc[data['Price_Change_nd'] <= data['lower_bound'], 'Label'] = 1  # Significant drop
+    data.loc[data['Price_Change_nd'] <= data['Lower_bound'], 'Label'] = 1  # Significant drop
     
     # Drop adj Close first
     if 'Adj Close' in data.columns:
@@ -38,11 +38,11 @@ def define_labels(data):
     
     # Drop rows with NaN labels
     
-    data.dropna(inplace=True)
+    if drop_temp: data.dropna(inplace=True)
 
 
     # Drop temporary columns
-    data.drop(columns=['Future_Close', 'Price_Change_nd', 'Upper_Bound', 'lower_bound'], inplace=True)
+    if drop_temp: data.drop(columns=['Future_Close', 'Price_Change_nd', 'Upper_Bound', 'Lower_bound'], inplace=True)
     
     
     return data

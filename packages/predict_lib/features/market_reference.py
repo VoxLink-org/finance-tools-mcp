@@ -11,22 +11,25 @@ def add_market_indicators(data: pd.DataFrame) -> pd.DataFrame:
     start_date = data['date'].min()
     end_date = data['date'].max()
     
+    use_cache = True
     # use cached data if available
     cache_name = DATA_DIR / f"market_data_{start_date}_{end_date}.pkl"
-    if cache_name.exists():
+    if use_cache and cache_name.exists():
         market_data = pd.read_pickle(cache_name)
     else:    
-        print(f"Fetching market data from {start_date} to {end_date}...")
+        next_date = end_date + pd.Timedelta(days=1)
+        print(f"Fetching market data from {start_date.strftime("%Y-%m-%d")} to {next_date.strftime("%Y-%m-%d")}...")
         raw = yfinance_service.download_history(
             indicators,
             start_date=start_date.strftime("%Y-%m-%d"),
-            end_date=end_date.strftime("%Y-%m-%d"),
+            end_date=next_date.strftime("%Y-%m-%d"),
             interval="1d",
         )
 
         if raw.empty:
             return data
 
+        print(raw.tail())
         # calc some indicators for SPY
         spy_close = raw["Close"]["SPY"]
         spy_open = raw["Open"]["SPY"]
@@ -52,7 +55,8 @@ def add_market_indicators(data: pd.DataFrame) -> pd.DataFrame:
         market_data["VIX_Open_Close_Diff"] = vix_close - vix_open
         market_data["VIX_5MA"] = vix_close.rolling(window=5).mean()
 
-        market_data.tail(100).to_csv("market_data.csv", index=False)
+        market_data['Date'] = raw.index
+        
         # save to cache
         market_data.to_pickle(cache_name)
 

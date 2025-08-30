@@ -26,11 +26,12 @@ def add_pattern_features(data: pd.DataFrame) -> pd.DataFrame:
             row['CDLENGULFING'], row['CDLDOJI'], row['CDLHAMMER'], row['CDLHANGINGMAN'],
             row['CDLMORNINGSTAR'], row['CDLEVENINGSTAR'], row['CDLPIERCING'], row['CDLDARKCLOUDCOVER']
         ]
+        # bear as -1 and bull as 1, default as 0
         # Encode as 1 if any bullish pattern, -1 if any bearish pattern, else 0
-        if any(p > 0 for p in patterns):
-            return 1
-        elif any(p < 0 for p in patterns):
+        if any(p < 0 for p in patterns):
             return -1
+        elif any(p > 0 for p in patterns):
+            return 1
         else:
             return 0
     data['pattern'] = data.apply(encode_all_patterns, axis=1)

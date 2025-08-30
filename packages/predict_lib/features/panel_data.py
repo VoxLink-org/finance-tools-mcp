@@ -41,9 +41,14 @@ def get_tickers_from_tradingview(prefix=False) -> List[str]:
 
 
     
-def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "5d", end_date: pd.Timestamp=None) -> pd.DataFrame:
-            
-    tickers = get_tickers_from_tradingview()
+def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "5d", end_date: pd.Timestamp=None, tickers: list[str] =None) -> pd.DataFrame:
+    use_cache = True
+    if tickers:
+        print('no cache for tickers')
+        use_cache = False
+        
+    if tickers is None:        
+        tickers = get_tickers_from_tradingview()
     end_date = pd.Timestamp.utcnow() if end_date is None else end_date
 
     if period == "1d":
@@ -72,8 +77,8 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
         start_date = pd.Timestamp.min
         
     # try to load from file first
-    data_path = DATA_DIR / f"most_focused_tickers_{start_date}_{end_date}.pkl"
-    use_cache = True
+    data_path = DATA_DIR / f"most_focused_tickers_{start_date.strftime("%Y-%m-%d")}_{end_date.strftime("%Y-%m-%d")}.pkl"
+    
     if use_cache and data_path.exists():
         try:
             df = pd.read_pickle(data_path)
@@ -114,12 +119,11 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
     # The 'Date' column is already in datetime format from the original index.
     # Ensure 'Date' is named 'date' and 'Ticker' is named 'ticker'
     data_stacked = data_stacked.rename(columns={'Date': 'date', 'Ticker': 'ticker'})
-    
-    print(data_stacked.head(10))
-    
+        
     # save to file
     try:
-        data_stacked.to_pickle(data_path)
+        if use_cache:
+            data_stacked.to_pickle(data_path)
     except Exception as e:
         logger.error(f"Error saving data to {data_path}: {e}")
     

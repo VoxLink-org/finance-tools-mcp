@@ -4,7 +4,7 @@ np.random.seed(42)
 from sklearn.metrics import accuracy_score, classification_report
 import xgboost as xgb
 
-from apps.cli_tool.features import (
+from .features import (
     add_technical_indicators,
     add_rolling_statistics,
     add_custom_features,
@@ -13,7 +13,7 @@ from apps.cli_tool.features import (
     fetch_panel_data
 )
 
-from apps.cli_tool.features.modeling import define_labels
+from .features.modeling import define_labels
 
 def feature_engineering(panel_data: pd.DataFrame):
     """Enhanced feature engineering using modular components"""
@@ -45,7 +45,7 @@ def feature_engineering(panel_data: pd.DataFrame):
         
     return panel_data
 
-def label_panel_data(panel_data: pd.DataFrame):
+def label_panel_data(panel_data: pd.DataFrame, drop_temp=True):
     """Label the panel data for modeling"""
     # Process each ticker individually
     tickers = panel_data['ticker'].unique()
@@ -54,7 +54,7 @@ def label_panel_data(panel_data: pd.DataFrame):
     for ticker in tickers:
         ticker_data = panel_data[panel_data['ticker'] == ticker].copy()
         # Define labels for the ticker data
-        ticker_data = define_labels(ticker_data)
+        ticker_data = define_labels(ticker_data, drop_temp)
         labeled_data.append(ticker_data)
     
     # Combine all labeled data
