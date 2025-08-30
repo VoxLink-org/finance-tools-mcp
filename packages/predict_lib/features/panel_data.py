@@ -75,9 +75,11 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
         start_date = pd.Timestamp.utcnow().replace(month=1, day=1)
     elif period == "max":
         start_date = pd.Timestamp.min
-        
+    
+    date1 = start_date.strftime("%Y-%m-%d")
+    date2 = end_date.strftime("%Y-%m-%d")
     # try to load from file first
-    data_path = DATA_DIR / f"most_focused_tickers_{start_date.strftime("%Y-%m-%d")}_{end_date.strftime("%Y-%m-%d")}.pkl"
+    data_path = DATA_DIR / f"most_focused_tickers_{date1}_{date2}.pkl"
     
     if use_cache and data_path.exists():
         try:
