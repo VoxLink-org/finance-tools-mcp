@@ -103,7 +103,7 @@ def get_prediction_result_lower_bound(ticker, period="6mo"):
         "last_close": round(float(last_close), 2),
         "lower_bound_percentage": round(float(lower_bound_value), 2),
         "thresohold_price": round(float(target_price), 2),
-        "y_proba": round(float(y_proba[-1]), 2),
+        "label_1_proba": round(float(y_proba[-1]), 2),
         "threshold_probability": round(float(optimal_threshold), 2),
         "prediction": 'may lower than thresohold price' if int(prediction) > 0 else 'may higher than thresohold price', # 1 if lower than thresohold price, 0 otherwise
         "model_desc": 'binary classifier, positive class is lower than thresohold price',
