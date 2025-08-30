@@ -2,9 +2,8 @@ import argparse
 import logging
 
 # Import the application factory
+from apps.mcp_server import sse_server
 from apps.mcp_server.main import create_mcp_application
-# Import the sse_server run function from its new location
-from . import sse_server
 
 logger = logging.getLogger(__name__) # Use the logger from main.py or define a new one
 

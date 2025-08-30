@@ -14,6 +14,8 @@ from packages.investor_agent_lib.tools import macro_tools
 from packages.investor_agent_lib.tools import option_tools
 from packages.investor_agent_lib.tools import predict_tools
 
+
+
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
@@ -38,7 +40,7 @@ def create_mcp_application():
     mcp.add_tool(option_tools.super_option_tool)
 
     # Register prediction tools
-    mcp.add_tool(predict_tools.get_next_day_prediction)
+    mcp.add_tool(predict_tools.price_prediction)
 
     # Register holdings analysis tools
     mcp.add_tool(holdings_tools.get_top25_holders)
@@ -70,5 +72,16 @@ def create_mcp_application():
     mcp.prompt()(prompts.mode_instructions)
     mcp.prompt()(prompts.investment_principles)
     mcp.prompt()(prompts.portfolio_construction_prompt)
-
+    
+    
+    # Register other routes
+    try:
+        from . import train_service
+        mcp.custom_route("/train", methods=["GET","POST","OPTIONS"])(train_service.trigger_train_model)
+        mcp.custom_route("/health", methods=["GET","HEAD","OPTIONS"])(train_service.health_check)
+        logger.info("Registered train service routes at /train")
+    except:
+        logger.error("Failed to register train service routes")
+        pass
+    
     return mcp

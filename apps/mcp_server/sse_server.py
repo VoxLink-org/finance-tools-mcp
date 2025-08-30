@@ -19,13 +19,6 @@ def run_sse_server(mcp_server: FastMCP):
         allow_methods=["*"], # Allow all methods
         allow_headers=["*"], # Allow all headers
     )
-    # Add health check
-
-    @mcp_server.custom_route("/", methods=["GET","HEAD","OPTIONS"])
-    def health_check(request: Request)->JSONResponse :
-        return JSONResponse(
-            {"status": "ok"}
-        )
 
 
     # Create a top-level Starlette app with CORS middleware and mount mcp.sse_app()

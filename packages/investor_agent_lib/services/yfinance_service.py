@@ -320,7 +320,7 @@ def download_history(tickers: list[str], start_date: str, end_date: str, interva
     """
     batch_size = 5
     results = []
-    
+    print('start time and end time:', start_date, end_date)
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i:i + batch_size]
         try:
