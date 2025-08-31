@@ -5,7 +5,7 @@ from packages.predict_lib.predict_down_v3 import get_prediction_result_lower_bou
 
 def price_prediction(ticker: str) -> dict:
     """
-    A well trained model that can predict whether a stock's price will be lower than its predicted thresohold price based on historical data.
+    A well trained model that can predict whether a stock's price will be lower than its predicted thresohold price in the next 5 days based on historical data.
 
     Parameters:
     ticker (str): The stock ticker symbol (e.g., 'AVGO').
