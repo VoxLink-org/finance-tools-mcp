@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
+
+from config.my_paths import DATA_DIR
 np.random.seed(42)
 from sklearn.metrics import accuracy_score, classification_report
 import xgboost as xgb
+import pickle
 
-from .features import (
+from packages.predict_lib.features import (
     add_technical_indicators,
     add_rolling_statistics,
     add_custom_features,
@@ -13,7 +16,7 @@ from .features import (
     fetch_panel_data
 )
 
-from .features.modeling import define_labels
+from packages.predict_lib.features.modeling import define_labels
 
 def feature_engineering(panel_data: pd.DataFrame):
     """Enhanced feature engineering using modular components"""
@@ -252,4 +255,6 @@ def main(period="1y", end_date_str="2025-08-10"):
 if __name__ == "__main__":
     import sys
     period = sys.argv[1] if len(sys.argv) > 1 else "1y"
-    main(period=period)
+    feature_importances, model, report = main(period=period)
+    with open(DATA_DIR / 'xgboost_model.pkl', 'wb') as f:
+        pickle.dump(model, f)

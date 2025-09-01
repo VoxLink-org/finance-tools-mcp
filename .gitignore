@@ -13,3 +13,4 @@ yfinance.cache
 data/*.db
 data/*.pkl
 *.csv
+*.png
