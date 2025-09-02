@@ -3,6 +3,8 @@
 import logging
 import sys
 
+from starlette.responses import JSONResponse
+from starlette.requests import Request
 
 from mcp.server.fastmcp import FastMCP
 
@@ -14,6 +16,28 @@ from packages.investor_agent_lib.tools import macro_tools
 from packages.investor_agent_lib.tools import option_tools
 from packages.investor_agent_lib.tools import predict_tools
 
+from mcp.server.auth.settings import AuthSettings
+
+from apps.mcp_server.simple_token_verifier import SimpleTokenVerifier
+
+
+# Create an instance of the SimpleTokenVerifier
+token_verifier = SimpleTokenVerifier()
+
+# Configure AuthSettings
+auth_settings = AuthSettings(
+    required_scopes=["read", "write"],
+    issuer_url="https://www.unkey.com",
+    resource_server_url="https://example.com/api",
+)
+
+
+def health_check(request: Request, **kwargs)->JSONResponse :
+    print(kwargs)
+    token = request.headers.get("Authorization")
+    return JSONResponse(
+        {"status": "ok", "token": token},
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +51,10 @@ logging.basicConfig(
 # Initialize MCP server
 def create_mcp_application():
     # Initialize MCP server
-    mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"])
+    mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"],
+                  token_verifier=token_verifier,
+                  auth=auth_settings
+                  )
 
     # Register yfinance tools
     mcp.add_tool(yfinance_tools.get_ticker_data)
@@ -78,8 +105,8 @@ def create_mcp_application():
     try:
         from . import train_service
         mcp.custom_route("/train", methods=["GET","POST","OPTIONS"])(train_service.trigger_train_model)
-        mcp.custom_route("/health", methods=["GET","HEAD","OPTIONS"])(train_service.health_check)
-        logger.info("Registered train service routes at /train")
+        mcp.custom_route("/health", methods=["GET","HEAD","OPTIONS"])(health_check)
+        logger.info("Registered train service routes at /train and billing routes at /billing")
     except:
         logger.error("Failed to register train service routes")
         pass
