@@ -24,8 +24,8 @@ def main():
 
     # Parse arguments and run the server
     args = parser.parse_args()
-    if args.transport == "sse":
-        sse_server.run_sse_server(mcp_app)
+    if args.transport != "stdio":
+        sse_server.run_server(mcp_app, transport=args.transport)
     else:
         mcp_app.run(transport=args.transport)
 

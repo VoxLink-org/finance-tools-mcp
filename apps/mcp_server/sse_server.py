@@ -1,3 +1,4 @@
+from typing import Literal
 import anyio
 import uvicorn
 from starlette.applications import Starlette
@@ -9,7 +10,7 @@ from starlette.requests import Request
 
 from mcp.server.fastmcp import FastMCP
 
-def run_sse_server(mcp_server: FastMCP):
+def run_server(mcp_server: FastMCP, transport: Literal["sse", "streamable-http"] = "sse"):
     """Run the SSE server with global CORS middleware by mounting mcp.sse_app()."""
 
     # Define CORS configuration
@@ -24,7 +25,7 @@ def run_sse_server(mcp_server: FastMCP):
     # Create a top-level Starlette app with CORS middleware and mount mcp.sse_app()
     app = Starlette(
         routes=[
-            Mount('/', app=mcp_server.sse_app()), # Mount the FastMCP SSE app
+            Mount('/', app=mcp_server.sse_app() if transport == "sse" else mcp_server.streamable_http_app()), # Mount the FastMCP SSE app
         ],
         middleware=[cors_middleware]
     )

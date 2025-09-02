@@ -38,7 +38,8 @@ full = [
     "pytest",
     "vectorbt",
     "xgboost",
-    "imbalanced-learn"
+    "imbalanced-learn",
+    "unkey-py>=2.1.0",
 ]
 
 [project.scripts]

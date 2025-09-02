@@ -68,7 +68,3 @@ def trigger_train_model(request: Request) -> JSONResponse:
             status_code=500
         )
 
-def health_check(request: Request)->JSONResponse :
-    return JSONResponse(
-        {"status": "ok"}
-    )
