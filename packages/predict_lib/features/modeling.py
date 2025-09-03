@@ -21,16 +21,23 @@ def define_labels(data, drop_temp=True):
     # Calculate price change over n days
     data['Price_Change_nd'] = (data['Future_Close'] - data['Close']) / data['Close']
 
-    # Calculate dynamic threshold based on 75th percentile of past price changes
-    # Shift Price_Change_nd by n days to ensure the rolling window only uses past data relative to the labeling point
+    # Calculate dynamic threshold based on average of past 7 days price change
+    # Use the 7-day average as the expected range for the next 5 days
+    data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(7).mean()
+    data['Lower_bound'] = -data['Price_Change_nd'].shift(5).rolling(7).mean()  # Symmetric bounds around zero
+    
     window_size = 7 # Example window size for dynamic percentiles
-    data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
-    data['Lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
+    # data['Upper_Bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.6)
+    # data['Lower_bound'] = data['Price_Change_nd'].shift(5).rolling(window=window_size, closed='right').quantile(0.4)
+
+    
+    
+    
     
     # Define labels based on dynamic threshold
     data['Label'] = 0  # Default to others (combines neutral and drop)
-    # data.loc[data['Price_Change_nd'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
-    data.loc[data['Price_Change_nd'] <= data['Lower_bound'], 'Label'] = 1  # Significant drop
+    data.loc[data['Price_Change_nd'] >= data['Upper_Bound'], 'Label'] = 1  # Significant rise
+    # data.loc[data['Price_Change_nd'] <= data['Lower_bound'], 'Label'] = 1  # Significant drop
     
     # Drop adj Close first
     if 'Adj Close' in data.columns:

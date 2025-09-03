@@ -43,6 +43,9 @@ def get_prediction_result_of_each_day(ticker, period="1y"):
     y_true = processed_data['Label']
     optimal_threshold, _, report = find_optimal_f1_threshold(y_true, y_proba)
 
+    print('Report:')
+    print(report)
+    
     # Get predictions for all days
     predictions = []
     # Reset index to ensure sequential integer indexing for y_proba
@@ -53,27 +56,37 @@ def get_prediction_result_of_each_day(ticker, period="1y"):
         upper_bound_value = row['Upper_Bound']
         lower_bound_value = row['Lower_bound']
         upper_threshold_price = actual_close * (1 + upper_bound_value)
-        lower_threshold_price = actual_close * (1 + lower_bound_value)
+        # lower_threshold_price = actual_close * (1 + lower_bound_value)
         proba = y_proba[idx]
         prediction = 1 if proba > optimal_threshold else 0
         
         # Log the date shift for validation
         original_date = date
         prediction_date = date + pd.Timedelta(days=5)
-        print(f"DEBUG: Prediction made on {original_date.strftime('%Y-%m-%d')} applies to {prediction_date.strftime('%Y-%m-%d')}")
+        # print(f"DEBUG: Prediction made on {original_date.strftime('%Y-%m-%d')} applies to {prediction_date.strftime('%Y-%m-%d')}")
         
         predictions.append({
-            'generated_date': original_date,
-            'date': prediction_date, # Shift date to the end of the 5-day prediction period
+            'date': original_date,
+            'close': actual_close,
             'actual_close': actual_close,
             'upper_threshold_price': upper_threshold_price,
-            'lower_threshold_price': lower_threshold_price,
+            # 'lower_threshold_price': lower_threshold_price,
             'prediction_probability': proba,
             'prediction': prediction,
             'lower_bound_pct': lower_bound_value * 100
         })
     
-    return pd.DataFrame(predictions), optimal_threshold
+    pred_df = pd.DataFrame(predictions)
+    
+    # shift the date and actual_close column by 5 days
+    pred_df['date'] = pred_df['date'].shift(-5)
+    pred_df['actual_close'] = pred_df['actual_close'].shift(-5)
+    
+    # review if the prediction is correct or not
+    pred_df['is_correct'] = (pred_df['actual_close'] > pred_df['upper_threshold_price']) & (pred_df['prediction'] == 1) | (pred_df['actual_close'] < pred_df['upper_threshold_price']) & (pred_df['prediction'] == 0)
+    
+    
+    return pred_df, optimal_threshold
 
 
 def fetch_actual_prices(ticker, period="1y"):
@@ -124,9 +137,14 @@ def plot_stock_prediction(ticker, period="1y", save_path=None):
                                    sharex=True)
     
     # Plot 1: Actual prices and threshold bounds
-    ax1.plot(actual_df['Date'], actual_df['Close'], 
+    # ax1.plot(actual_df['Date'], actual_df['Close'], 
+    #          label=f'{ticker} Actual Close Price', 
+    #          color='blue', linewidth=2)
+
+    ax1.plot(pred_df['date'], pred_df['actual_close'], 
              label=f'{ticker} Actual Close Price', 
              color='blue', linewidth=2)
+
     
     # Plot threshold bounds
     # ax1.plot(pred_df['date'], pred_df['lower_threshold_price'], 
@@ -134,9 +152,9 @@ def plot_stock_prediction(ticker, period="1y", save_path=None):
     #          color='blue', linestyle='--', linewidth=2, alpha=0.7)
     
     # Plot the generated dates
-    ax1.plot(pred_df['date'], pred_df['lower_threshold_price'], 
-             label='Prediction Threshold (Lower Bound at Generated Date)', 
-             color='green', linestyle='--', linewidth=2, alpha=0.7)
+    # ax1.plot(pred_df['date'], pred_df['lower_threshold_price'], 
+    #          label='Prediction Threshold (Lower Bound at Generated Date)', 
+    #          color='green', linestyle='--', linewidth=2, alpha=0.7)
     ax1.plot(pred_df['date'], pred_df['upper_threshold_price'], 
              label='Prediction Threshold (Lower Bound at Generated Date)', 
              color='red', linestyle='--', linewidth=2, alpha=0.7)
@@ -145,6 +163,11 @@ def plot_stock_prediction(ticker, period="1y", save_path=None):
     # Color regions based on predictions
     for idx, row in pred_df.iterrows():
         date = row['date']
+        if pd.isnull(date):
+            continue
+        
+        if not row['is_correct']:
+            continue
         
         if row['prediction'] == 0:
             # Predicted to go below threshold - red region
