@@ -203,7 +203,7 @@ def train_by_xgboost(train_data: pd.DataFrame, val_data: pd.DataFrame, test_data
 
 
 
-def main(period="1y", end_date_str="2025-08-10"):
+def main(period="1y", end_date_str="2023-08-10"):
     """
     It is a down turn predictor for label = 1
     which means the training data must contain at least one down turn
