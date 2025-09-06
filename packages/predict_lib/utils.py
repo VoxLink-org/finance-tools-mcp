@@ -19,7 +19,7 @@ def find_optimal_f1_threshold(y_true: np.ndarray, y_proba: np.ndarray) -> tuple[
     f1_scores = np.where((precisions + recalls) == 0, 0, 2 * (precisions * recalls) / (precisions + recalls))
 
     optimal_idx = np.argmax(f1_scores)
-    optimal_threshold = thresholds[optimal_idx]
+    optimal_threshold = 0.5 # thresholds[optimal_idx]
     max_f1_score = f1_scores[optimal_idx]
 
     # Calculate confusion matrix at the optimal threshold
