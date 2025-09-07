@@ -102,14 +102,16 @@ def get_prediction_result_lower_bound(ticker, period="6mo"):
         "ticker": ticker,
         "last_close": round(float(last_close), 2),
         "lower_bound_percentage": round(float(lower_bound_value), 2),
-        "thresohold_price": round(float(target_price), 2),
+        "threshold_price": round(float(target_price), 2),
         "label_1_proba": round(float(y_proba[-1]), 2),
-        "threshold_probability": round(float(optimal_threshold), 2),
+        "go_down_threshold_probability": round(float(optimal_threshold), 2),
         "prediction": 'may lower than thresohold price' if int(prediction) > 0 else 'may higher than thresohold price', # 1 if lower than thresohold price, 0 otherwise
         "model_desc": """Binary classifier: label=1 → price < threshold, label=0 → price ≥ threshold, for the next 5 days prediction.
         Conclusion interpretation: prioritize using the prediction field as the final conclusion.
-        Risk judgment: combine label_1_proba with threshold_probability to judge the uncertainty of the prediction.
-        Reliability reference: refer to the precision, recall, and f1-score in the report to evaluate the reliability of the prediction result.""",
+        Risk judgment: combine label_1_proba with go_down_threshold_probability to judge the uncertainty of the prediction.
+        Reliability reference: refer to the precision, recall, and f1-score in the report to evaluate the reliability of the prediction result.
+        potential gain from (Bull Put Spread strategy) = probability of stock price going down * predicted stock price * average loss from a failed prediction
+        """,
         "report": report
     }
 

@@ -1,6 +1,6 @@
 import logging
 
-from packages.investor_agent_lib.services.predict_service import predict_next_day_chg
+from packages.investor_agent_lib.services.predict_service import profit_prob
 from packages.predict_lib.predict_down_v3 import get_prediction_result_lower_bound
 
 def price_prediction(ticker: str) -> dict:
@@ -11,7 +11,7 @@ def price_prediction(ticker: str) -> dict:
     ticker (str): The stock ticker symbol (e.g., 'AVGO').
 
     Returns:
-    dict: A dictionary with prediction details including current price, thresohold price and confusion matrix report,
+    dict: A dictionary with prediction details including current price, thresohold price and confusion matrix report, and the market implementing probability.
     
     """
     try:
@@ -19,6 +19,11 @@ def price_prediction(ticker: str) -> dict:
         if prediction is None:
             logging.error(f"Failed to retrieve prediction for {ticker}.")
             return None
+        
+        prob_below, prob_above = profit_prob(ticker, prediction['last_close'], prediction['threshold_price'])
+        prediction['option_market_implement_prob_below'] = round(prob_below, 2)
+        prediction['option_market_implement_prob_above'] = round(prob_above, 2)
+        
         return prediction
     except Exception as e:
         logging.error(f"An error occurred while predicting next day change for {ticker}: {e}")

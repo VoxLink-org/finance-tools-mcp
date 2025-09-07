@@ -33,7 +33,7 @@ def calculate_indicators(ticker:str)->dict:
             'term_structure_slope': None,
             'pc_ratio': None
         }
-    
+        
     # Calculate moneyness (absolute distance from current price)
     options_data['moneyness'] = abs(options_data['strike'] - options_data['underlyingPrice'])
     
@@ -57,6 +57,7 @@ def calculate_indicators(ticker:str)->dict:
     near_term = options_data[options_data['days_to_expiry'] <= 30]
     far_term = options_data[options_data['days_to_expiry'] > 30]
     term_structure_slope = far_term['impliedVolatility'].mean() - near_term['impliedVolatility'].mean()
+    nearest_expiry_days = near_term['days_to_expiry'].min()
     
     # Calculate P/C ratio
     puts = options_data[options_data['optionType'] == 'P']
@@ -64,6 +65,7 @@ def calculate_indicators(ticker:str)->dict:
     pc_ratio = puts['volume'].sum() / calls['volume'].sum()
     
     return {
+        'nearest_expiry_days': nearest_expiry_days,
         'atm_iv_avg': atm_iv_avg,
         'skew_measure': skew_measure,
         'term_structure_slope': term_structure_slope,
