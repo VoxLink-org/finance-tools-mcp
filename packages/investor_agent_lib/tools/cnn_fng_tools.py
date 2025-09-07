@@ -140,7 +140,7 @@ async def get_overall_sentiment_tool() -> str:
         logger.error(f"Error processing CNN Fear & Greed data: {str(e)}")
         return f"Error processing CNN Fear & Greed data: {str(e)}"
 
-async def get_historical_fng_tool(days: int) -> str:
+async def get_historical_fng_tool(days: int=10) -> str:
     """
     Get historical CNN Fear & Greed Index data for a specified number of days.
 
