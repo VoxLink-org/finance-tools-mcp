@@ -79,12 +79,13 @@ async def get_historical_fng() -> str:
             score = entry.get("score")
 
             if timestamp and score:
+                score = round(float(score), 2)
                 dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
                 date_str = dt.strftime("%Y-%m-%d")
                 classification = cnn_fng_service.get_classification(int(score))
                 lines.append(f"{date_str}: {score} ({classification})")
 
-        return "\\n".join(lines)  # Corrected join method
+        return "\n".join(lines)  # Corrected join method
     except Exception as e:
         logger.error(f"Error processing historical Fear & Greed data: {str(e)}")
         return f"Error processing historical Fear & Greed data: {str(e)}"
@@ -175,13 +176,14 @@ async def get_historical_fng_tool(days: int) -> str:
             score = entry.get("score")
 
             if timestamp and score:
+                score = round(float(score), 2)
                 dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
                 date_str = dt.strftime("%Y-%m-%d")
                 score_num = int(score)
                 classification = cnn_fng_service.get_classification(score_num)
                 lines.append(f"{date_str}: {score} ({classification})")
 
-        return "\\n".join(lines)  # Corrected join method
+        return "\n".join(lines)  # Corrected join method
     except Exception as e:
         logger.error(f"Error processing historical Fear & Greed data: {str(e)}")
         return f"Error processing historical Fear & Greed data: {str(e)}"
