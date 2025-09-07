@@ -4,7 +4,7 @@ from packages.predict_lib.train_down_v3 import main
 
 import sys
 period = sys.argv[1] if len(sys.argv) > 1 else "1y"
-feature_importances, model, report = main(period=period, end_date_str="2025-08-10")
+feature_importances, model, report = main(period=period, end_date_str="2025-08-12")
 with open(DATA_DIR / 'xgboost_model.pkl', 'wb') as f:
     pickle.dump(model, f)
     

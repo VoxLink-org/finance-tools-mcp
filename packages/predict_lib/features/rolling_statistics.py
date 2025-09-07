@@ -25,4 +25,12 @@ def add_rolling_statistics(data):
         data[f'VWAP_Norm_{window}D'] = (data[f'VWAP_{window}D'] - data[f'VWAP_{window}D'].rolling(window).mean()) / \
                                      data[f'VWAP_{window}D'].rolling(window).std()
     
+    #     data[f'OV_PCR_{window}D'] = data['Option Volume Put-Call Ratio'].rolling(window).mean()
+    #     data[f'OI_PCR_{window}D'] = data['OI Put-Call Ratio'].rolling(window).mean()
+
+    # data[f'OV_PCR_DIFF'] = data['Option Volume Put-Call Ratio'] - data['Option Volume Put-Call Ratio'].shift(5)
+    # data[f'OI_PCR_DIFF'] = data['OI Put-Call Ratio'] - data['OI Put-Call Ratio'].shift(5)
+    # data[f'OV_BOOL'] = (data['Option Volume Put-Call Ratio'] > 1).astype(int)
+    # data[f'OI_BOOL'] = (data['OI Put-Call Ratio'] > 1).astype(int)
+        
     return data 

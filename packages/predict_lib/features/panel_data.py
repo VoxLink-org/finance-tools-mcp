@@ -7,6 +7,7 @@ import httpx
 import pandas as pd
 from packages.investor_agent_lib.services import yfinance_service
 from config.my_paths import DATA_DIR
+from packages.predict_lib.features.option_features import download_option_history
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,33 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
     # The 'Date' column is already in datetime format from the original index.
     # Ensure 'Date' is named 'date' and 'Ticker' is named 'ticker'
     data_stacked = data_stacked.rename(columns={'Date': 'date', 'Ticker': 'ticker'})
+    
+    # Try to get the option history if avaliable
+    # options_data = download_option_history(tickers=tickers)
+    # if options_data is not None:
+    #     # map by date, ticker, only want  'Option Volume Put-Call Ratio'   'OI Put-Call Ratio'
+    #     options_data = options_data.reset_index()
+    #     options_data = options_data[['date', 'ticker', 'Option Volume Put-Call Ratio', 'OI Put-Call Ratio']]
+    #     # get the most average Option Volume Put-Call Ratio and OI Put-Call Ratio
+    #     mean_ov_ratio = options_data.groupby(['date', 'ticker'])['Option Volume Put-Call Ratio'].mean().reset_index()
+    #     mean_oi_ratio = options_data.groupby(['date', 'ticker'])['OI Put-Call Ratio'].mean().reset_index()
         
+    #     # merge original data first
+    #     data_stacked = pd.merge(data_stacked, options_data, on=['date', 'ticker'], how='left')
+        
+    #     # for nan values, replace with mean value as fallback
+    #     mean_ov_dict = mean_ov_ratio.set_index(['ticker'])['Option Volume Put-Call Ratio'].to_dict()
+    #     mean_oi_dict = mean_oi_ratio.set_index(['ticker'])['OI Put-Call Ratio'].to_dict()
+        
+    #     # Create fallback values for NaN entries
+    #     data_stacked['Option Volume Put-Call Ratio'] = data_stacked['Option Volume Put-Call Ratio'].fillna(
+    #         data_stacked.apply(lambda row: mean_ov_dict.get((row['ticker']), 0), axis=1)
+    #     )
+    #     data_stacked['OI Put-Call Ratio'] = data_stacked['OI Put-Call Ratio'].fillna(
+    #         data_stacked.apply(lambda row: mean_oi_dict.get((row['ticker']), 0), axis=1)
+    #     )
+
+    
     # save to file
     try:
         if use_cache:
@@ -133,7 +160,5 @@ def fetch_panel_data(period: Literal["1d", "5d", "10d", "1mo", "3mo", "6mo", "1y
 
 
 if __name__ == "__main__":
-    import sys
-    ticker = sys.argv[1] if len(sys.argv) > 1 else "5d"
-    data = fetch_panel_data(ticker)
-    print(data.tail(10))
+    data = fetch_panel_data(tickers=["GOOG", "MSFT", "AAPL", "TSLA", "NVDA", "AMD", "META"], period="1y", end_date=pd.Timestamp("2024-08-10"))
+    data.to_csv("panel_data.csv", index=False)
