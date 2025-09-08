@@ -21,8 +21,8 @@ def price_prediction(ticker: str) -> dict:
             return None
         
         prob_below, prob_above = profit_prob(ticker, prediction['last_close'], prediction['threshold_price'])
-        prediction['option_market_implement_prob_below'] = round(prob_below, 2)
-        prediction['option_market_implement_prob_above'] = round(prob_above, 2)
+        prediction['option_market_implement_prob_go_below'] = round(prob_below, 2)
+        prediction['option_market_implement_prob_go_above'] = round(prob_above, 2)
         
         return prediction
     except Exception as e:
