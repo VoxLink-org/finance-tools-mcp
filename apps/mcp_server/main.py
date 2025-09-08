@@ -73,12 +73,10 @@ def create_mcp_application():
     mcp.add_tool(holdings_tools.get_top25_holders)
     mcp.add_tool(holdings_tools.get_insider_trades)
 
-    # Register CNN Fear & Greed resources and tools
-    mcp.resource("cnn://fng/current")(cnn_fng_tools.get_overall_sentiment)
-    mcp.resource("cnn://fng/history")(cnn_fng_tools.get_historical_fng)
+    # Register CNN Fear & Greed tools
 
     mcp.add_tool(cnn_fng_tools.get_overall_sentiment_tool)
-    mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
+    # mcp.add_tool(cnn_fng_tools.get_historical_fng_tool)
     # mcp.add_tool(cnn_fng_tools.analyze_fng_trend)
 
     # Register calculation tools
