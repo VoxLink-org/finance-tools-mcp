@@ -1,6 +1,9 @@
 from packages.investor_agent_lib.services.yfinance_service import get_price_history, get_current_price
 import pandas as pd
 from datetime import datetime, timedelta
+from packages.predict_lib import predict_down_v3, utils
+from packages.investor_agent_lib.options import option_indicators
+from packages.investor_agent_lib.analytics.risk import get_risk_free_rate
 
 def get_current_percentile(ticker: str) -> dict:
     """
@@ -138,3 +141,10 @@ def predict_next_day_chg(ticker: str) -> dict:
         print(f"Error processing {ticker}: {e}")
         return None
 
+
+
+def profit_prob(ticker, current_price, next_price):
+    risk_free = get_risk_free_rate()
+    inds = option_indicators.calculate_indicators(ticker)
+    near_days = inds['nearest_expiry_days']
+    return utils.implied_prob(current_price, next_price, near_days, risk_free, inds['atm_iv_avg'])

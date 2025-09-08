@@ -79,34 +79,37 @@ def get_whalewisdom_stock_code(ticker: str) -> str:
     displayName = info.get('displayName', ticker)
     print(displayName)
 
-
-    url = f'https://whalewisdom.com/search/filer_stock_autocomplete2?filer_restrictions=3&term={displayName}'
-    # with requests_cache.enabled('whalewisdom', backend=requests_cache.SQLiteCache(':memory:'), expire_after=3600):
-    response = curl_cffi.get(url, impersonate="chrome", headers={
-        "accept": "application/json, text/plain, */*",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "en-US,en;q=0.9",
-        "origin": "https://whalewisdom.com",
-        "sec-ch-ua": '"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"macOS"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/244.178.44.111 Safari/537.36",
-    })        
-    data = response.json()
-    if not data or not isinstance(data, list):
-        raise ValueError(f"No results found for ticker: {ticker}")
-    target = None
-    print(data)
-    for item in data:
-        match = re.search(rf"{displayName}", item['label'], re.IGNORECASE)
-        if match:
-            print(item)
-            target = item['id']
-            break
-    return target
+    def search_by_term(term: str):
+        url = f'https://whalewisdom.com/search/filer_stock_autocomplete2?filer_restrictions=3&term={term}'
+        # with requests_cache.enabled('whalewisdom', backend=requests_cache.SQLiteCache(':memory:'), expire_after=3600):
+        response = curl_cffi.get(url, impersonate="chrome", headers={
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "en-US,en;q=0.9",
+            "origin": "https://whalewisdom.com",
+            "sec-ch-ua": '"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"macOS"',
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/244.178.44.111 Safari/537.36",
+        })        
+        data = response.json()
+        if not data or not isinstance(data, list):
+            raise ValueError(f"No results found for ticker: {ticker}")
+        target = None
+        print(data)
+        for item in data:
+            match = re.search(rf"{term}", item['label'] + item['value'], re.IGNORECASE)
+            if match:
+                print(item)
+                target = item['id']
+                break
+        return target
+    
+    return search_by_term(displayName) or search_by_term(ticker)
+    
 
 @cache.lru_with_ttl(ttl_seconds=300)   
 def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
@@ -124,6 +127,8 @@ def get_whalewisdom_holdings(ticker: str)->pd.DataFrame:
         httpx.HTTPStatusError: If HTTP request fails
     """
     code = get_whalewisdom_stock_code(ticker)
+    if not code:
+        raise ValueError(f"No results found for ticker: {ticker}")
     print(code)
     url = f'https://whalewisdom.com/stock/holdings?id={code}&q1=-1&change_filter=&mv_range=&perc_range=&rank_range=&sc=true&sort=current_shares&order=desc&offset=0&limit=25'
     response = curl_cffi.get(url, impersonate="chrome", headers={

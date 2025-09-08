@@ -3,7 +3,7 @@ from datetime import datetime
 
 from packages.investor_agent_lib.analytics import market_health
 from packages.investor_agent_lib.services import cnn_fng_service
-
+import pandas as pd
 
 
 logger = logging.getLogger(__name__)
@@ -12,82 +12,6 @@ logger = logging.getLogger(__name__)
 
 # --- CNN Fear & Greed Index Resources and Tools ---
 
-# Resource to get current Fear & Greed Index
-async def get_overall_sentiment() -> str:
-    """
-    Get comprehensive market sentiment indicators including:
-    - CNN Fear & Greed Index (score and rating)
-    - Market RSI (Relative Strength Index)
-    - VIX (Volatility Index)
-
-    Returns:
-        str: Formatted string containing all three indicators with their current values
-    """
-    logger.info("Fetching current CNN Fear & Greed Index, market RSI and VIX")
-    data = await cnn_fng_service.fetch_fng_data()
-
-    if not data:
-        return "Error: Unable to fetch CNN Fear & Greed Index data."
-
-    market_rsi = market_health.get_market_rsi()
-    market_vix = market_health.get_market_vix()
-
-    try:
-        fear_and_greed = data.get("fear_and_greed", {})
-        current_score = int(fear_and_greed.get("score", 0))
-        current_rating = fear_and_greed.get("rating")
-        timestamp = fear_and_greed.get("timestamp")
-
-        if timestamp:
-            # Convert timestamp to datetime
-            dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
-            date_str = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-        else:
-            date_str = "Unknown date"
-
-        # Construct output with proper formatting
-        result = (
-            f"CNN Fear & Greed Index (as of {date_str}):\n"  # Escaped newline
-            f"Score: {current_score}\n"  # Escaped newline
-            f"Rating: {current_rating}\n"
-            f"{market_rsi}\n"
-            f"{market_vix}"
-        )
-        return result
-    except Exception as e:
-        logger.error(f"Error processing CNN Fear & Greed data: {str(e)}")
-        return f"Error processing CNN Fear & Greed data: {str(e)}"
-
-# Resource to get historical Fear & Greed data
-async def get_historical_fng() -> str:
-    """Get historical CNN Fear & Greed Index data as a resource."""
-    logger.info("Fetching historical CNN Fear & Greed Index resource")
-    data = await cnn_fng_service.fetch_fng_data()
-
-    if not data:
-        return "Error: Unable to fetch CNN Fear & Greed Index data."
-
-    try:
-        history = data.get("fear_and_greed_historical", [])
-        if not history:
-            return "No historical data available."
-
-        # Format historical data
-        lines = ["Historical CNN Fear & Greed Index:"]
-        for entry in history:
-            timestamp = entry.get("timestamp")
-            score = entry.get("score")
-
-            if timestamp and score:
-                dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
-                date_str = dt.strftime("%Y-%m-%d")
-                classification = cnn_fng_service.get_classification(int(score))
-                lines.append(f"{date_str}: {score} ({classification})")
-
-        return "\\n".join(lines)  # Corrected join method
-    except Exception as e:
-        logger.error(f"Error processing historical Fear & Greed data: {str(e)}")
-        return f"Error processing historical Fear & Greed data: {str(e)}"
 
 # Tool to get current Fear & Greed Index
 async def get_overall_sentiment_tool() -> str:
@@ -110,10 +34,16 @@ async def get_overall_sentiment_tool() -> str:
         return "Error: Unable to fetch CNN Fear & Greed Index data."
 
     try:
-        fear_and_greed = data.get("fear_and_greed", {})
-        current_score = int(fear_and_greed.get("score", 0))
-        current_rating = fear_and_greed.get("rating", "Unknown")
-        timestamp = fear_and_greed.get("timestamp")
+        fear_and_greed_historical = data['fear_and_greed_historical']
+        fear_and_greed_historical_df = pd.DataFrame(fear_and_greed_historical)
+        fear_and_greed_historical_df['timestamp'] = pd.to_datetime(fear_and_greed_historical_df['timestamp'], unit='ms')
+        fear_and_greed_historical_df['5day_avg'] = fear_and_greed_historical_df['score'].rolling(window=5).mean()
+                
+        fiveday_avg = fear_and_greed_historical_df['5day_avg'].iloc[-1]
+        fear_and_greed = data['fear_and_greed']
+        current_score = round(fear_and_greed['score'], 2)
+        current_rating = fear_and_greed['rating'] or 'Unknown'
+        timestamp = fear_and_greed["timestamp"]
 
         if timestamp:
             dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
@@ -128,6 +58,7 @@ async def get_overall_sentiment_tool() -> str:
         result = (
             f"CNN Fear & Greed Index & Market Sentiment (as of {date_str}):\n"  # Escaped newline
             f"Score: {current_score}\n"  # Escaped newline
+            f"5-Day Average: {fiveday_avg:.2f}\n"  # Escaped newline
             f"CNN Rating: {current_rating}\n"  # Escaped newline
             f"Classification: {score_classification}\n"
             f"{market_rsi}\n"
@@ -139,7 +70,7 @@ async def get_overall_sentiment_tool() -> str:
         logger.error(f"Error processing CNN Fear & Greed data: {str(e)}")
         return f"Error processing CNN Fear & Greed data: {str(e)}"
 
-async def get_historical_fng_tool(days: int) -> str:
+async def get_historical_fng_tool(days: int=10) -> str:
     """
     Get historical CNN Fear & Greed Index data for a specified number of days.
 
@@ -175,13 +106,14 @@ async def get_historical_fng_tool(days: int) -> str:
             score = entry.get("score")
 
             if timestamp and score:
+                score = round(float(score), 2)
                 dt = datetime.fromtimestamp(int(timestamp) / 1000)  # CNN API uses milliseconds
                 date_str = dt.strftime("%Y-%m-%d")
                 score_num = int(score)
                 classification = cnn_fng_service.get_classification(score_num)
                 lines.append(f"{date_str}: {score} ({classification})")
 
-        return "\\n".join(lines)  # Corrected join method
+        return "\n".join(lines)  # Corrected join method
     except Exception as e:
         logger.error(f"Error processing historical Fear & Greed data: {str(e)}")
         return f"Error processing historical Fear & Greed data: {str(e)}"
