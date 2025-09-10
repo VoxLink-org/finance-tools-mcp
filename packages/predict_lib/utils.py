@@ -45,6 +45,10 @@ def implied_prob(S0, K, T, r, sigma):
     Returns:
         tuple: (prob_below, prob_above) - 跌破执行价的概率和涨破执行价的概率
     """
+    if (T <= 0) or (r <= 0) or (sigma <= 0):
+        print(f"[Warning] Invalid input. T, r, and sigma must be positive. T={T}, r={r}, sigma={sigma}")
+        return 0, 0
+    
     d2 = (math.log(S0/K) + (r - 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
     prob_below = norm.cdf(-d2)  # P(ST < K)
     prob_above = norm.cdf(d2)   # P(ST > K)
