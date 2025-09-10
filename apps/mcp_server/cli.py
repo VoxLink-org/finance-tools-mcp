@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__) # Use the logger from main.py or define a n
 def main():
 
 
-    mcp_app = create_mcp_application()
 
     # Add argument parsing
     parser = argparse.ArgumentParser(description="Run the Finance Tools MCP server.")
@@ -21,9 +20,20 @@ def main():
         default="stdio",
         help="Transport protocol to use (stdio or sse)",
     )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to run the server on",
+    )
+    
 
     # Parse arguments and run the server
     args = parser.parse_args()
+    
+    mcp_app = create_mcp_application(port=args.port)
+
+    
     if args.transport != "stdio":
         sse_server.run_server(mcp_app, transport=args.transport)
     else:

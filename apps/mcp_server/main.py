@@ -49,13 +49,16 @@ logging.basicConfig(
 )
 
 # Initialize MCP server
-def create_mcp_application():
+def create_mcp_application(port=8000):
     # Initialize MCP server
     mcp = FastMCP("finance-tools-mcp", dependencies=["yfinance", "httpx", "pandas","ta-lib-easy"],
                   token_verifier=token_verifier,
-                  auth=auth_settings
+                  auth=auth_settings,
+                  port=port
                   )
 
+    print(mcp.settings)
+    
     # Register yfinance tools
     mcp.add_tool(yfinance_tools.get_ticker_data)
     mcp.add_tool(yfinance_tools.get_price_history)
