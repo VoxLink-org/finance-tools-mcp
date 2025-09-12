@@ -7,12 +7,13 @@ from tabulate import tabulate
 
 from packages.investor_agent_lib.services import yfinance_service, finviz_service
 from packages.investor_agent_lib.digests import time_series_digest
+from mcp.server.fastmcp.server import Context
 
 logger = logging.getLogger(__name__)
 
 # Note: MCP server initialization and registration will happen in server.py
 
-def get_ticker_data(ticker: str) -> str:
+def get_ticker_data(ticker: str, ctx: Context) -> str:
     """Get comprehensive report for ticker: overview, news, metrics, sector / industry valuation, performance, dates, analyst recommendations, and upgrades/downgrades."""
     try:
         info = yfinance_service.get_ticker_info(ticker)

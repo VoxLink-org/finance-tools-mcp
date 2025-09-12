@@ -83,3 +83,23 @@ class SimpleTokenVerifier(TokenVerifier):
             traceback.print_exc()
             
         return None
+    
+
+from functools import wraps
+from mcp.server.fastmcp.server import Context
+
+def check_context(required_capability: list[str]):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            ctx: Context | None = kwargs.get("ctx")  # 不强制要求必须传
+            if ctx:
+                if not getattr(ctx, "capabilities", None) or required_capability not in ctx.capabilities:
+                    raise PermissionError(f"Missing required capability: {required_capability}")
+                ctx.log(f"[{fn.__name__}] Capability check passed: {required_capability}")
+                return fn(*args, **kwargs)
+            else:
+                # 如果函数没写 ctx，我们就忽略检查
+                return fn(*args, **kwargs)
+        return wrapper
+    return decorator

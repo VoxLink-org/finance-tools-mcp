@@ -18,7 +18,7 @@ from packages.investor_agent_lib.tools import predict_tools
 
 from mcp.server.auth.settings import AuthSettings
 
-from apps.mcp_server.simple_token_verifier import SimpleTokenVerifier
+from apps.mcp_server.simple_token_verifier import SimpleTokenVerifier, check_context
 
 
 # Create an instance of the SimpleTokenVerifier
@@ -60,7 +60,7 @@ def create_mcp_application(port=8000):
     print(mcp.settings)
     
     # Register yfinance tools
-    mcp.add_tool(yfinance_tools.get_ticker_data)
+    mcp.add_tool(check_context(['read','write'])(yfinance_tools.get_ticker_data))
     mcp.add_tool(yfinance_tools.get_price_history)
     mcp.add_tool(yfinance_tools.get_financial_statements)
     mcp.add_tool(yfinance_tools.get_earnings_history)
