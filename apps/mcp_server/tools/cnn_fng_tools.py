@@ -1,6 +1,9 @@
 import logging
 from datetime import datetime
 
+
+from apps.mcp_server.simple_token_verifier import cost_extra_credit
+
 from packages.investor_agent_lib.analytics import market_health
 from packages.investor_agent_lib.services import cnn_fng_service
 import pandas as pd
@@ -14,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # Tool to get current Fear & Greed Index
+
 async def get_overall_sentiment_tool() -> str:
     """
     Get comprehensive market sentiment indicators including:

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+
 from packages.investor_agent_lib.services import macro_service
 
 
@@ -8,18 +9,22 @@ logger = logging.getLogger(__name__)
 
 # Note: MCP server initialization and registration will happen in server.py
 
+
 def get_current_time() -> str:
     """Get the current time in ISO 8601 format."""
     now = datetime.now()
     return f"Today is {now.isoformat()}"
 
+
 def get_fred_series(series_id):
     """Get a FRED series by its ID. However the data is not always the latest, so use with caution!!!"""
     return macro_service.get_fred_series(series_id)
 
+
 def search_fred_series(query):
     """Search for the most popular FRED series by keyword. Useful for finding key data by name. Like GDP, CPI, etc. However the data is not always the latest.  """
     return macro_service.search_fred_series(query)
+
 
 def cnbc_news_feed():
     """Get the latest breaking stock market news from CNBC. Useful to have an overview for the day. Include the Fed rate prediction from Fed watch and key macro indicators. """
@@ -37,6 +42,7 @@ def cnbc_news_feed():
     news.insert(0, fred_watch_news)
     news.insert(1, key_indicators)
     return news
+
 
 def social_media_feed(keywords: list[str] = [])-> list[dict]:
     """Get most discussed stocks and investments opinions from reddit. Useful to know what investors are talking about. 

@@ -3,13 +3,19 @@ import logging
 
 # Import the application factory
 from apps.mcp_server import sse_server
-from apps.mcp_server.main import create_mcp_application
+from apps.mcp_server.main import mcp_app
+import apps.mcp_server.tools.calculation_tools  # Ensure tools are registered
+import apps.mcp_server.tools.cnn_fng_tools  # Ensure tools are registered
+import apps.mcp_server.tools.holdings_tools  # Ensure tools are registered
+import apps.mcp_server.tools.macro_tools  # Ensure tools are registered
+import apps.mcp_server.tools.option_tools  # Ensure tools are registered
+import apps.mcp_server.tools.predict_tools  # Ensure tools are registered
+import apps.mcp_server.tools.yfinance_tools  # Ensure tools are registered
+
 
 logger = logging.getLogger(__name__) # Use the logger from main.py or define a new one
 
 def main():
-
-
 
     # Add argument parsing
     parser = argparse.ArgumentParser(description="Run the Finance Tools MCP server.")
@@ -31,8 +37,9 @@ def main():
     # Parse arguments and run the server
     args = parser.parse_args()
     
-    mcp_app = create_mcp_application(port=args.port)
-
+    mcp_app.settings.port = args.port
+    
+    logger.info(f"Starting server on port {args.port}")
     
     if args.transport != "stdio":
         sse_server.run_server(mcp_app, transport=args.transport)

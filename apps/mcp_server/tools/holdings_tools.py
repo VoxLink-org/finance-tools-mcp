@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 
 from packages.investor_agent_lib.analytics import holdings
 from packages.investor_agent_lib.services import finviz_service
@@ -16,11 +15,13 @@ def get_holdings_summary(ticker:str) -> str:
     """
     return holdings.analyze_institutional_holdings_v2(ticker)
 
+
 def get_top25_holders(ticker: str) -> str:
     """
     Get top 25 institutional holders and their changes for a given stock ticker.
     """
     return holdings.get_top25_holder(ticker)
+
 
 def get_insider_trades(ticker: str) -> str:
     """

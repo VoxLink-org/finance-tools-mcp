@@ -1,7 +1,9 @@
 import logging
 
+
 from packages.investor_agent_lib.services.predict_service import profit_prob
 from packages.predict_lib.predict_down_v3 import get_prediction_result_lower_bound
+
 
 def price_prediction(ticker: str) -> dict:
     """

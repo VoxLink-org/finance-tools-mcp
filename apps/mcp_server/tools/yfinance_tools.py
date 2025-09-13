@@ -7,13 +7,14 @@ from tabulate import tabulate
 
 from packages.investor_agent_lib.services import yfinance_service, finviz_service
 from packages.investor_agent_lib.digests import time_series_digest
-from mcp.server.fastmcp.server import Context
+
 
 logger = logging.getLogger(__name__)
 
 # Note: MCP server initialization and registration will happen in server.py
 
-def get_ticker_data(ticker: str, ctx: Context) -> str:
+
+def get_ticker_data(ticker: str) -> str:
     """Get comprehensive report for ticker: overview, news, metrics, sector / industry valuation, performance, dates, analyst recommendations, and upgrades/downgrades."""
     try:
         info = yfinance_service.get_ticker_info(ticker)
@@ -183,6 +184,7 @@ def get_options(
         logger.error(f"Error getting options data for {ticker_symbol}: {e}")
         return f"Failed to retrieve options data for {ticker_symbol}: {str(e)}"
 
+
 def get_price_history(
     ticker: str,
     period: Literal["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"] = "6mo",
@@ -226,6 +228,7 @@ def get_price_history(
 
     return (f"PRICE HISTORY FOR {ticker} ({period}):\n" +
             tabulate(price_data, headers=["Date", "Open", "Close", "Volume", "Dividends", "Splits"], tablefmt="plain"))
+
 
 def get_financial_statements(
     ticker: str,
@@ -287,6 +290,7 @@ def get_institutional_holders(ticker: str, top_n: int = 20) -> str:
 
     return "\n".join(sections)
 
+
 def get_earnings_history(ticker: str) -> str:
     """Get earnings history with estimates and surprises."""
     earnings_history = yfinance_service.get_earnings_history(ticker)
@@ -328,6 +332,7 @@ def get_insider_trades(ticker: str) -> str:
 
     return (f"INSIDER TRADES FOR {ticker}:\n" +
             tabulate(trades_data, headers=["Date", "Insider", "Title", "Text", "Shares"], tablefmt="plain"))
+
 
 def get_ticker_news_tool(ticker: str) -> list[dict]:
     """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""

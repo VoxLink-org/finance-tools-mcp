@@ -1,12 +1,13 @@
 import logging
 
-from packages.investor_agent_lib.utils import calculation_utils
 
+from packages.investor_agent_lib.utils import calculation_utils
 
 
 logger = logging.getLogger(__name__)
 
 # Note: MCP server initialization and registration will happen in server.py
+
 
 def calculate(expression: str) -> dict:
     """Calculate the result of a mathematical expression. Support python math syntax and numpy.
@@ -16,4 +17,3 @@ def calculate(expression: str) -> dict:
     > "np.mean([1, 2, 3])"
     """
     return calculation_utils.calc(expression)
-

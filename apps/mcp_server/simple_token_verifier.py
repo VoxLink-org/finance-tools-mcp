@@ -6,6 +6,8 @@ from typing import Any
 from mcp.server.auth.provider import TokenVerifier, AccessToken
 from starlette.authentication import SimpleUser, AuthCredentials
 
+import requests
+
 from unkey.py import Unkey
 
 from dotenv import load_dotenv
@@ -40,29 +42,24 @@ class SimpleTokenVerifier(TokenVerifier):
             return AccessToken(
                 token=token,
                 client_id="super_user",
-                scopes=["read", "write"],
+                scopes=["normal", "advanced", "admin"],
             )
         try:
             # Verify the token with Unkey
             verification = self.unkey.keys.verify_key(key=token)
             # Handle the response based on actual Unkey Python SDK structure
             # The response is a V2KeysVerifyKeyResponseData object with direct fields
-            
+            print('verification', verification)
             # Check if the key is valid directly from the verification object
-            is_valid = verification.data.valid
+            # is_valid = verification.data.valid
             
-            # Use the verification object directly for other attributes
-            result = verification
             
-            if is_valid:
+            if verification.data.key_id:
                 # Extract owner_id - try both snake_case and camelCase
-                owner_id = result.data.key_id or None
+                owner_id = verification.data.key_id or None
                 
                 # Extract scopes - try permissions as scopes
-                scopes = ["read", "write"]
-                permissions = result.data.permissions
-                if permissions and isinstance(permissions, list):
-                    scopes = permissions
+                scopes=["normal", "advanced"]
                 
                 client_id = owner_id or "authenticated_user"
                 
@@ -73,7 +70,7 @@ class SimpleTokenVerifier(TokenVerifier):
                 )
             else:
                 # Log invalid key details for debugging
-                error_code = getattr(result, 'code', 'UNKNOWN')
+                error_code = verification.data.code or "unknown_error"
                 print(f"Token verification failed: key is invalid, code: {error_code}")
                 
         except Exception as e:
@@ -86,20 +83,80 @@ class SimpleTokenVerifier(TokenVerifier):
     
 
 from functools import wraps
-from mcp.server.fastmcp.server import Context
+from mcp.server.auth.middleware.auth_context import get_access_token
 
-def check_context(required_capability: list[str]):
+DOMAIN = os.environ.get('DOMAIN')
+
+if not DOMAIN:
+    raise ValueError("DOMAIN environment variable is required for TOPUP_HINTS")
+
+TOPUP_HINTS = """🚨 CREDIT EXHAUSTED - ACTION REQUIRED 🚨
+
+Your API credits have been depleted. To continue using this service, you need to purchase additional credits.
+
+🔧 IMMEDIATE SOLUTION:
+Visit https://{DOMAIN} to top up your credits instantly
+
+💡 WHAT HAPPENED:
+- Your current API key has insufficient credits for this operation
+- Each API call consumes credits based on complexity
+- You've reached your monthly/quarterly credit limit
+
+⚡ QUICK TOP-UP OPTIONS:
+1. Go to https://{DOMAIN} 
+2. Log in with your existing account
+3. Select your preferred credit package
+4. Complete secure payment
+5. Resume using the service immediately
+
+📊 CREDIT USAGE TIPS:
+- Monitor your usage dashboard at https://dashboard.{DOMAIN}/
+- Set up low-credit alerts to avoid service interruption
+- Consider upgrading to higher-tier plans for better value
+
+❓ NEED HELP?
+Contact support at support@{DOMAIN} or check the FAQ at https://{DOMAIN}/help
+
+This operation requires {extra_credit} credits. 
+
+**You must tell user to top up on https://{DOMAIN}. And try again! **"""
+
+def cost_extra_credit(extra_credit: int = 0):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            ctx: Context | None = kwargs.get("ctx")  # 不强制要求必须传
-            if ctx:
-                if not getattr(ctx, "capabilities", None) or required_capability not in ctx.capabilities:
-                    raise PermissionError(f"Missing required capability: {required_capability}")
-                ctx.log(f"[{fn.__name__}] Capability check passed: {required_capability}")
+            access_token = get_access_token()
+            
+            if not access_token:
                 return fn(*args, **kwargs)
-            else:
-                # 如果函数没写 ctx，我们就忽略检查
+            
+            if access_token.token == SUPER_TOKEN:
                 return fn(*args, **kwargs)
+            
+            if extra_credit > 0:
+                verification_raw = requests.post(
+                    "https://api.unkey.com/v2/keys.verifyKey",
+                    headers={"Content-Type": "application/json",
+                                "Authorization": f"Bearer {UNKEY_ROOTKEY}"},
+                    json={
+                        "key": access_token.token,
+                        "credits": {
+                            "cost": extra_credit
+                        }
+                    }
+                )
+                verification_raw.raise_for_status()
+                
+                verification = verification_raw.json()
+                
+                if not verification.get("data", {}).get("valid", False):
+                    print(f"Token verification failed: key is invalid, response: {verification}")
+                    error_message = TOPUP_HINTS.format(extra_credit=extra_credit)
+                    raise PermissionError(error_message)
+                
+                print(f"Token verification succeeded: key is valid, response: {verification}")
+                
+            return fn(*args, **kwargs)
+                    
         return wrapper
     return decorator

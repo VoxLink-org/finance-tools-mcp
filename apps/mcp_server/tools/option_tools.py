@@ -1,10 +1,12 @@
 import logging
 from datetime import datetime
 from tabulate import tabulate
+
 from packages.investor_agent_lib.services import enhance_option_service
 from packages.investor_agent_lib.analytics import option
 
 logger = logging.getLogger(__name__)
+
 
 def super_option_tool(ticker:str) -> str:
     """
