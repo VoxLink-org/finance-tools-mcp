@@ -335,7 +335,7 @@ def get_insider_trades(ticker: str) -> str:
 
 
 def get_ticker_news_tool(ticker: str) -> list[dict]:
-    """For getting yahoo financial news of a ticker. Useful for getting latest news, especially for doing deep research."""
+    """For getting financial news of a ticker. Useful for getting latest news, especially for doing deep research."""
     news = yfinance_service.get_ticker_news(ticker)
 
     if news is None or len(news) == 0:

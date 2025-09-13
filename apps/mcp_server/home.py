@@ -241,7 +241,7 @@ def home_page(request: Request) -> HTMLResponse:
                 
                 <h2>💡 Key Features</h2>
                 <ul>
-                    <li><strong>Real-time Data:</strong> Live market feeds from Yahoo Finance and other premium sources</li>
+                    <li><strong>Real-time Data:</strong> Live market feeds from premium sources</li>
                     <li><strong>Credit-based System:</strong> Flexible pricing with per-request billing</li>
                     <li><strong>Authentication:</strong> Secure API key management with Unkey integration</li>
                     <li><strong>Scalable:</strong> Built on FastMCP for high-performance API delivery</li>
