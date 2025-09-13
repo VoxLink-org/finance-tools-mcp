@@ -243,9 +243,6 @@ def home_page(request: Request) -> HTMLResponse:
                 <ul>
                     <li><strong>Real-time Data:</strong> Live market feeds from premium sources</li>
                     <li><strong>Credit-based System:</strong> Flexible pricing with per-request billing</li>
-                    <li><strong>Authentication:</strong> Secure API key management with Unkey integration</li>
-                    <li><strong>Scalable:</strong> Built on FastMCP for high-performance API delivery</li>
-                    <li><strong>Developer Friendly:</strong> RESTful endpoints with comprehensive error handling</li>
                     <li><strong>AI Integration:</strong> Optimized for LLM consumption and tool calling</li>
                 </ul>
                 
