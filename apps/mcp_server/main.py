@@ -3,14 +3,15 @@
 import logging
 import sys
 
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, HTMLResponse
 from starlette.requests import Request
 
 from mcp.server.fastmcp import FastMCP
 
 from mcp.server.auth.settings import AuthSettings
 
-from apps.mcp_server.simple_token_verifier import SimpleTokenVerifier, cost_extra_credit
+from apps.mcp_server.home import home_page
+from apps.mcp_server.simple_token_verifier import SimpleTokenVerifier, cost_extra_credit, DOMAIN
 from apps.mcp_server.tools import calculation_tools, cnn_fng_tools, holdings_tools, macro_tools, option_tools, predict_tools, yfinance_tools
 from packages.investor_agent_lib import prompts
 
@@ -24,7 +25,6 @@ auth_settings = AuthSettings(
     issuer_url="https://www.unkey.com",
     resource_server_url="https://example.com/api",
 )
-
 
 def health_check(request: Request, **kwargs)->JSONResponse :
     print(kwargs)
@@ -86,6 +86,7 @@ def create_mcp_application():
     # Register other routes
     try:
         from . import train_service
+        mcp.custom_route("/", methods=["GET","HEAD","OPTIONS"])(home_page)
         mcp.custom_route("/train", methods=["GET","POST","OPTIONS"])(train_service.trigger_train_model)
         mcp.custom_route("/health", methods=["GET","HEAD","OPTIONS"])(health_check)
         logger.info("Registered train service routes at /train and billing routes at /billing")
